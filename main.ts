@@ -2,6 +2,31 @@
 /// <reference path="joypad/GamePad.ts"/>
 class ShooterGame extends Phaser.Game
 {
+    player:Phaser.Sprite;
+    cursors:Phaser.CursorKeys;
+    bullets:Phaser.Group;
+    tilemap:Phaser.Tilemap;
+    background:Phaser.TilemapLayer;
+    walls:Phaser.TilemapLayer;
+    monsters:Phaser.Group;
+    explosions:Phaser.Group;
+    scoreText:Phaser.Text;
+    livesText:Phaser.Text;
+    stateText:Phaser.Text;
+    gamepad:Gamepads.GamePad;
+
+
+    PLAYER_ACCELERATION = 500;
+    PLAYER_MAX_SPEED = 400; // pixels/second
+    PLAYER_DRAG = 600;
+    MONSTER_SPEED = 200;
+    BULLET_SPEED = 500;
+    FIRE_RATE = 1;
+    LIVES = 100;
+    TEXT_MARGIN = 50;
+    nextFire = 0;
+    score = 0;
+
     constructor() {
         super(800, 480, Phaser.CANVAS, 'gameDiv');
         this.state.add('main', mainState);
@@ -18,31 +43,8 @@ class mainState extends Phaser.State
     //OBSERVER PER SCORE
     //FACTORY O DECORATOR PER MONSTERS
     //
-    private player:Phaser.Sprite;
-    private cursors:Phaser.CursorKeys;
-    private bullets:Phaser.Group;
-    private tilemap:Phaser.Tilemap;
-    private background:Phaser.TilemapLayer;
-    private walls:Phaser.TilemapLayer;
-    private monsters:Phaser.Group;
-    private explosions:Phaser.Group;
-    private scoreText:Phaser.Text;
-    private livesText:Phaser.Text;
-    private stateText:Phaser.Text;
-    private gamepad:Gamepads.GamePad;
+    game:ShooterGame;
 
-
-    private PLAYER_ACCELERATION = 500;
-    private PLAYER_MAX_SPEED = 400; // pixels/second
-    private PLAYER_DRAG = 600;
-    private MONSTER_SPEED = 400;
-    private BULLET_SPEED = 500;
-    private FIRE_RATE = 1;
-    private LIVES = 100;
-    private TEXT_MARGIN = 50;
-
-    private nextFire = 0;
-    private score = 0;
 
 
     preload():void {
@@ -51,9 +53,9 @@ class mainState extends Phaser.State
         this.load.image('bg', 'assets/bg.png');
         this.load.image('player', 'assets/survivor1_machine.png');
         this.load.image('bullet', 'assets/bulletBeigeSilver_outline.png');
-        this.load.image('zombie1_image', 'assets/zoimbie1_hold.png');
-        this.load.image('zombie2_image', 'assets/zombie2_hold.png');
-        this.load.image('robot_image', 'assets/robot1_hold.png');
+        this.load.image('zombie1', 'assets/zoimbie1_hold.png');
+        this.load.image('zombie2', 'assets/zombie2_hold.png');
+        this.load.image('robot', 'assets/robot1_hold.png');
         this.load.image('explosion', 'assets/smokeWhite0.png');
         this.load.image('explosion2', 'assets/smokeWhite1.png');
         this.load.image('explosion3', 'assets/smokeWhite2.png');
@@ -67,7 +69,7 @@ class mainState extends Phaser.State
         this.physics.startSystem(Phaser.Physics.ARCADE);
 
         if (this.game.device.desktop) {
-            this.cursors = this.input.keyboard.createCursorKeys();
+            this.game.cursors = this.input.keyboard.createCursorKeys();
         } else {
             this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
             this.scale.pageAlignHorizontally = true;
@@ -101,87 +103,66 @@ class mainState extends Phaser.State
         var width = this.scale.bounds.width;
         var height = this.scale.bounds.height;
 
-        this.scoreText = this.add.text(this.TEXT_MARGIN, this.TEXT_MARGIN, 'Score: ' + this.score,
+        this.game.scoreText = this.add.text(this.game.TEXT_MARGIN, this.game.TEXT_MARGIN, 'Score: ' + this.score,
             {font: "30px Arial", fill: "#ffffff"});
-        this.scoreText.fixedToCamera = true;
-        this.livesText = this.add.text(width - this.TEXT_MARGIN, this.TEXT_MARGIN, 'Lives: ' + this.player.health,
+        this.game.scoreText.fixedToCamera = true;
+        this.game.livesText = this.add.text(width - this.game.TEXT_MARGIN, this.game.TEXT_MARGIN, 'Lives: ' + this.game.player.health,
             {font: "30px Arial", fill: "#ffffff"});
-        this.livesText.anchor.setTo(1, 0);
-        this.livesText.fixedToCamera = true;
+        this.game.livesText.anchor.setTo(1, 0);
+        this.game.livesText.fixedToCamera = true;
 
-        this.stateText = this.add.text(width / 2, height / 2, '', {font: '84px Arial', fill: '#fff'});
-        this.stateText.anchor.setTo(0.5, 0.5);
-        this.stateText.visible = false;
-        this.stateText.fixedToCamera = true;
+        this.game.stateText = this.add.text(width / 2, height / 2, '', {font: '84px Arial', fill: '#fff'});
+        this.game.stateText.anchor.setTo(0.5, 0.5);
+        this.game.stateText.visible = false;
+        this.game.stateText.fixedToCamera = true;
     };
 
     private createExplosions()
     {
-        this.explosions = this.add.group();
-        this.explosions.createMultiple(20, 'explosion');
+        this.game.explosions = this.add.group();
+        this.game.explosions.createMultiple(20, 'explosion');
 
-        this.explosions.setAll('anchor.x', 0.5);
-        this.explosions.setAll('anchor.y', 0.5);
+        this.game.explosions.setAll('anchor.x', 0.5);
+        this.game.explosions.setAll('anchor.y', 0.5);
 
-        this.explosions.forEach((explosion:Phaser.Sprite) => {
+        this.game.explosions.forEach((explosion:Phaser.Sprite) => {
             explosion.loadTexture(this.rnd.pick(['explosion', 'explosion2', 'explosion3']));
         }, this);
     };
 
     private createWalls()
     {
-        this.walls = this.tilemap.createLayer('walls');
-        this.walls.x = this.world.centerX;
-        this.walls.y = this.world.centerY;
+        this.game.walls = this.game.tilemap.createLayer('walls');
+        this.game.walls.x = this.world.centerX;
+        this.game.walls.y = this.world.centerY;
 
-        this.walls.resizeWorld();
+        this.game.walls.resizeWorld();
 
-        this.tilemap.setCollisionBetween(1, 195, true, 'walls');
+        this.game.tilemap.setCollisionBetween(1, 195, true, 'walls');
     };
 
     private createBackground()
     {
-        this.background = this.tilemap.createLayer('background');
-        this.background.x = this.world.centerX;
-        this.background.y = this.world.centerY;
+        this.game.background = this.game.tilemap.createLayer('background');
+        this.game.background.x = this.world.centerX;
+        this.game.background.y = this.world.centerY;
     };
 
     private createTilemap()
     {
-        this.tilemap = this.game.add.tilemap('tilemap');
-        this.tilemap.addTilesetImage('tilesheet_complete', 'tiles');
+        this.game.tilemap = this.game.add.tilemap('tilemap');
+        this.game.tilemap.addTilesetImage('tilesheet_complete', 'tiles');
     };
 
     private setRandomAngle(monster:Phaser.Sprite) {
         monster.angle = this.rnd.angle();
     }
 
-    private resetMonster(monster:Phaser.Sprite) {
-        monster.rotation = this.physics.arcade.angleBetween(
-            monster,
-            this.player
-        );
-    }
 
-    private createBullets()
-    {
-        this.bullets = this.add.group();
-        this.bullets.enableBody = true;
-        this.bullets.physicsBodyType = Phaser.Physics.ARCADE;
-        this.bullets.createMultiple(20, 'bullet');
-
-        this.bullets.setAll('anchor.x', 0.5);
-        this.bullets.setAll('anchor.y', 0.5);
-        this.bullets.setAll('scale.x', 0.5);
-        this.bullets.setAll('scale.y', 0.5);
-        this.bullets.setAll('outOfBoundsKill', true);
-        this.bullets.setAll('checkWorldBounds', true);
-    };
-
-    private createVirtualJoystick() {this.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK);};
+    private createVirtualJoystick() {this.game.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK);};
 
     private setupCamera() {
-        this.camera.follow(this.player);
+        this.camera.follow(this.game.player);
     };
 
     private createPlayer()
@@ -213,8 +194,8 @@ class mainState extends Phaser.State
         this.physics.arcade.collide(this.player, this.walls);
         this.physics.arcade.overlap(this.bullets, this.monsters, this.bulletHitMonster, null, this);
         this.physics.arcade.collide(this.bullets, this.walls, this.bulletHitWall, null, this);
-        this.physics.arcade.collide(this.walls, this.monsters, this.resetMonster, null, this);
-        this.physics.arcade.collide(this.monsters, this.monsters, this.resetMonster, null, this);
+        this.physics.arcade.collide(this.walls, this.monsters, Monster.resetMonster, null, this);
+        this.physics.arcade.collide(this.monsters, this.monsters, Monster.resetMonster, null, this);
     }
 
     rotateWithRightStick() {
@@ -378,92 +359,104 @@ class mainState extends Phaser.State
         }
 
     }
+    private createBullets()
+    {
+        this.bullets = this.add.group();
+        this.bullets.enableBody = true;
+        this.bullets.physicsBodyType = Phaser.Physics.ARCADE;
+        this.bullets.createMultiple(20, 'bullet');
+
+        this.bullets.setAll('anchor.x', 0.5);
+        this.bullets.setAll('anchor.y', 0.5);
+        this.bullets.setAll('scale.x', 0.5);
+        this.bullets.setAll('scale.y', 0.5);
+        this.bullets.setAll('outOfBoundsKill', true);
+        this.bullets.setAll('checkWorldBounds', true);
+    };
     private createMonsters()
     {
         this.monsters = this.add.group();
+        var factory = new MonsterFactory(this.game);
 
-        var factory = new MonsterFactory(this.game, 0,0, null, 0);
+        //CREAREM 10 Robots
+        for (var x=0; x<10; x++) {this.addToGame(factory.createMonster('robot'));}
 
-        var robot = factory.createRobot('robot_image');
-        this.add.existing(robot);
-        this.monsters.add(robot);
+        //CREAREM 5 Zombies tipus 1
+        for (var x=0; x<5; x++) {this.addToGame(factory.createMonster('zombie1'));}
 
-        var zombie1 = factory.createZombie1('zombie1_image');
-        this.add.existing(zombie1);
-        this.monsters.add(zombie1);
-
-        var zombie2 = factory.createZombie2('zombie2_image');
-        this.add.existing(zombie2);
-        this.monsters.add(zombie2);
-
-        this.monsters.forEach((explosion:Phaser.Sprite) => {explosion.loadTexture(this.rnd.pick(['zombie1', 'zombie2', 'robot']));}, this);
-        this.monsters.callAll('events.onOutOfBounds.add', 'events.onOutOfBounds', this.resetMonster, this);
+        //CREAREM 3 Zombies tipus 2
+        for (var x=0; x<3; x++) {this.addToGame(factory.createMonster('zombie2'));}
     };
+    private addToGame(monster:Monster)
+    {
+        this.add.existing(monster);
+        this.monsters.add(monster);
+    }
 
 }
-class MonsterFactory extends Phaser.Sprite
+
+
+class MonsterFactory
 {
-    game:Phaser.Game;
-    constructor(game:Phaser.Game, x:number, y:number, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture, frame:string|number)
+    game:ShooterGame;
+    constructor(game:Phaser.Game) {this.game = game;}
+    createMonster(key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture):Monster
+    {
+        if (key == 'robot'){return new RobotMonster(this.game, key);}
+        if (key =='zombie1'){return new Zombie1Monster(this.game, key);}
+        if (key =='zombie2'){return new Zombie2Monster(this.game, key);}
+        else{return null;};
+    }
+}
+class Monster extends Phaser.Sprite
+{
+    game:ShooterGame;
+    constructor(game:ShooterGame, x:number, y:number, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture, frame:string|number)
     {
         super(game, x, y, key, frame);
         this.game = game;
+        this.game.physics.enable(this, Phaser.Physics.ARCADE);
+        this.body.enableBody = true;
+        this.anchor.setTo(0.5,0.5);
+        this.angle = game.rnd.angle();
+        this.events.onOutOfBounds(this.resetMonster, this);
     }
-    createRobot(key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture):RobotMonster
+    resetMonster(monster:Phaser.Sprite)
     {
-        return new RobotMonster(this.game, key);
+        monster.rotation = this.game.physics.arcade.angleBetween(monster, this.game.player);
     }
-    createZombie1(key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture): Zombie1Monster
-    {
-        return new Zombie1Monster(this.game, key);
 
-    }
-    createZombie2(key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture): Zombie2Monster
-    {
-        return new Zombie2Monster(this.game, key);
-    }
 }
-class RobotMonster extends MonsterFactory
+class RobotMonster extends Monster
 {
-    private MONSTER_HEALTH = 3;
-    private NAME = "ROBOT";
-    constructor(game:Phaser.Game, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
+    MONSTER_HEALTH = 3;
+    NAME = "ROBOT";
+    constructor(game:ShooterGame, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
     {
         super(game, 100, 100, key, 0);
-        this.game.physics.enable(this, Phaser.Physics.ARCADE);
-        this.body.enableBody = true;
-        this.anchor.setTo(0.5,0.5);
         this.health = this.MONSTER_HEALTH;
-        this.body.setRandomAngle;
-        this.checkWorldBounds = true;
+        this.name = this.NAME;
     }
 }
-class Zombie1Monster extends MonsterFactory
+class Zombie1Monster extends Monster
 {
-    private MONSTER_HEALTH = 1;
-    private NAME = "Zombie 1";
-    constructor(game:Phaser.Game, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
+    MONSTER_HEALTH = 1;
+    NAME = "Zombie 1";
+    constructor(game:ShooterGame, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
     {
         super(game, 150, 150,key, 0);
-        this.game.physics.enable(this, Phaser.Physics.ARCADE);
-        this.body.enableBody = true;
-        this.anchor.setTo(0.5,0.5);
-        this.health = this.MONSTER_HEALTH;
-        this.body.setRandomAngle;
+        this.health=this.MONSTER_HEALTH;
+        this.name = this.NAME;
     }
-
 }
-class Zombie2Monster extends MonsterFactory
+class Zombie2Monster extends Monster
 {
-    private MONSTER_HEALTH = 2
-    private NAME = "Zombie 2";
-    constructor(game:Phaser.Game, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
+    MONSTER_HEALTH = 2
+    NAME = "Zombie 2";
+    constructor(game:ShooterGame, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
     {
         super(game, 200, 200,key, 0);
-        this.game.physics.enable(this, Phaser.Physics.ARCADE);
-        this.body.enableBody = true;
-        this.anchor.setTo(0.5,0.5);
         this.health = this.MONSTER_HEALTH;
-        this.body.setRandomAngle;
+        this.name = this.NAME;
     }
 }
