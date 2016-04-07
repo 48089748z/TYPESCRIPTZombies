@@ -18,11 +18,11 @@ class ShooterGame extends Phaser.Game
     gamepad:Gamepads.GamePad;
     
     PLAYER_ACCELERATION = 500;
-    PLAYER_MAX_SPEED = 400; // pixels/second
+    PLAYER_MAX_SPEED = 300; // pixels/second
     PLAYER_DRAG = 600;
     MONSTER_SPEED = 200;
     BULLET_SPEED = 600;
-    FIRE_RATE = 150;
+    FIRE_RATE = 200;
     TEXT_MARGIN = 50;
     NEXT_FIRE = 0;
 
@@ -188,8 +188,6 @@ class mainState extends Phaser.State
     private bulletHitMonster(bullet:Phaser.Sprite, monster:Phaser.Sprite) {
         bullet.kill();
         monster.damage(1);
-
-
         this.explosion(bullet.x, bullet.y);
 
         if (monster.health > 0) {
@@ -313,7 +311,7 @@ class mainState extends Phaser.State
 
     private createPlayer()
     {
-        var oriol = new Player('ORIOL', 50, this.game, this.world.centerX, this.world.centerY, 'player', 0);
+        var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0);
         this.game.player = this.add.existing(oriol);
     };
 
@@ -326,10 +324,10 @@ class mainState extends Phaser.State
         for (var x=0; x<10; x++) {this.addToGame(factory.createMonster('robot'));}
 
         //CREAREM 5 Zombies tipus 1
-        for (var x=0; x<5; x++) {this.addToGame(factory.createMonster('zombie1'));}
+        for (var x=0; x<15; x++) {this.addToGame(factory.createMonster('zombie1'));}
 
         //CREAREM 3 Zombies tipus 2
-        for (var x=0; x<3; x++) {this.addToGame(factory.createMonster('zombie2'));}
+        for (var x=0; x<23; x++) {this.addToGame(factory.createMonster('zombie2'));}
     };
     private addToGame(monster:Monster)
     {
@@ -343,7 +341,7 @@ class mainState extends Phaser.State
 class Monster extends Phaser.Sprite
 {
     game:ShooterGame;
-    MONSTER_HEALTH; //AQUESTES DUES VARIABLES LES TENEN TOTS ELS MONSTRES PERO VARIARAN SEGONS QUIN MONSTRE CREEM, IGUAL QUE AMB LES MONES DE CIUTAT O POBLE, AMB DIFERENTS INGREDIENTS
+    MONSTER_HEALTH = 0; //AQUESTES DUES VARIABLES LES TENEN TOTS ELS MONSTRES PERO VARIARAN SEGONS QUIN MONSTRE CREEM, IGUAL QUE AMB LES MONES DE CIUTAT O POBLE, AMB DIFERENTS INGREDIENTS
     NAME:string;
     constructor(game:ShooterGame, x:number, y:number, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture, frame:string|number)
     {
@@ -355,7 +353,8 @@ class Monster extends Phaser.Sprite
         this.angle = game.rnd.angle();
         this.checkWorldBounds = true;
     }
-    update():void {
+    update():void
+    {
         super.update();
         this.events.onOutOfBounds.add(this.resetMonster, this);
     }
@@ -378,7 +377,7 @@ class RobotMonster extends Monster
     constructor(game:ShooterGame, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
     {
         super(game, 100, 100, key, 0);
-        this.health = this.MONSTER_HEALTH;
+        this.health = 5;
         this.name = this.NAME;
     }
 }
@@ -387,7 +386,7 @@ class Zombie1Monster extends Monster
     constructor(game:ShooterGame, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
     {
         super(game, 150, 150,key, 0);
-        this.health=this.MONSTER_HEALTH;
+        this.health=2;
         this.name = this.NAME;
     }
 }
@@ -396,7 +395,7 @@ class Zombie2Monster extends Monster
     constructor(game:ShooterGame, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
     {
         super(game, 200, 200,key, 0);
-        this.health = this.MONSTER_HEALTH;
+        this.health = 3;
         this.name = this.NAME;
     }
 }

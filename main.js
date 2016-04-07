@@ -961,11 +961,11 @@ var ShooterGame = (function (_super) {
     function ShooterGame() {
         _super.call(this, 1000, 1000, Phaser.CANVAS, 'gameDiv');
         this.PLAYER_ACCELERATION = 500;
-        this.PLAYER_MAX_SPEED = 400; // pixels/second
+        this.PLAYER_MAX_SPEED = 300; // pixels/second
         this.PLAYER_DRAG = 600;
         this.MONSTER_SPEED = 200;
         this.BULLET_SPEED = 600;
-        this.FIRE_RATE = 150;
+        this.FIRE_RATE = 200;
         this.TEXT_MARGIN = 50;
         this.NEXT_FIRE = 0;
         this.state.add('main', mainState);
@@ -1222,7 +1222,7 @@ var mainState = (function (_super) {
     };
     ;
     mainState.prototype.createPlayer = function () {
-        var oriol = new Player('ORIOL', 50, this.game, this.world.centerX, this.world.centerY, 'player', 0);
+        var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0);
         this.game.player = this.add.existing(oriol);
     };
     ;
@@ -1234,11 +1234,11 @@ var mainState = (function (_super) {
             this.addToGame(factory.createMonster('robot'));
         }
         //CREAREM 5 Zombies tipus 1
-        for (var x = 0; x < 5; x++) {
+        for (var x = 0; x < 15; x++) {
             this.addToGame(factory.createMonster('zombie1'));
         }
         //CREAREM 3 Zombies tipus 2
-        for (var x = 0; x < 3; x++) {
+        for (var x = 0; x < 23; x++) {
             this.addToGame(factory.createMonster('zombie2'));
         }
     };
@@ -1254,6 +1254,7 @@ var Monster = (function (_super) {
     __extends(Monster, _super);
     function Monster(game, x, y, key, frame) {
         _super.call(this, game, x, y, key, frame);
+        this.MONSTER_HEALTH = 0; //AQUESTES DUES VARIABLES LES TENEN TOTS ELS MONSTRES PERO VARIARAN SEGONS QUIN MONSTRE CREEM, IGUAL QUE AMB LES MONES DE CIUTAT O POBLE, AMB DIFERENTS INGREDIENTS
         this.game = game;
         this.game.physics.enable(this, Phaser.Physics.ARCADE);
         this.body.enableBody = true;
@@ -1296,7 +1297,7 @@ var RobotMonster = (function (_super) {
     __extends(RobotMonster, _super);
     function RobotMonster(game, key) {
         _super.call(this, game, 100, 100, key, 0);
-        this.health = this.MONSTER_HEALTH;
+        this.health = 5;
         this.name = this.NAME;
     }
     return RobotMonster;
@@ -1305,7 +1306,7 @@ var Zombie1Monster = (function (_super) {
     __extends(Zombie1Monster, _super);
     function Zombie1Monster(game, key) {
         _super.call(this, game, 150, 150, key, 0);
-        this.health = this.MONSTER_HEALTH;
+        this.health = 2;
         this.name = this.NAME;
     }
     return Zombie1Monster;
@@ -1314,7 +1315,7 @@ var Zombie2Monster = (function (_super) {
     __extends(Zombie2Monster, _super);
     function Zombie2Monster(game, key) {
         _super.call(this, game, 200, 200, key, 0);
-        this.health = this.MONSTER_HEALTH;
+        this.health = 3;
         this.name = this.NAME;
     }
     return Zombie2Monster;
