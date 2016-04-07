@@ -1067,10 +1067,6 @@ var mainState = (function (_super) {
         this.game.tilemap.addTilesetImage('tilesheet_complete', 'tiles');
     };
     ;
-    mainState.prototype.createVirtualJoystick = function () { this.game.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK); };
-    ;
-    mainState.prototype.setupCamera = function () { this.camera.follow(this.game.player); };
-    ;
     mainState.prototype.update = function () {
         _super.prototype.update.call(this);
         this.movePlayer();
@@ -1086,7 +1082,6 @@ var mainState = (function (_super) {
         this.physics.arcade.collide(this.game.walls, this.game.monsters, this.resetMonster, null, this);
         this.physics.arcade.collide(this.game.monsters, this.game.monsters, this.resetMonster, null, this);
     };
-    mainState.prototype.resetMonster = function (monster) { monster.rotation = this.physics.arcade.angleBetween(monster, this.game.player); };
     mainState.prototype.monsterTouchesPlayer = function (player, monster) {
         monster.kill();
         player.damage(1);
@@ -1096,11 +1091,6 @@ var mainState = (function (_super) {
             this.game.stateText.text = " GAME OVER \n Click to restart";
             this.input.onTap.addOnce(this.restart, this);
         }
-    };
-    mainState.prototype.restart = function () { this.game.state.restart(); };
-    mainState.prototype.bulletHitWall = function (bullet) {
-        this.explosion(bullet.x, bullet.y);
-        bullet.kill();
     };
     mainState.prototype.bulletHitMonster = function (bullet, monster) {
         bullet.kill();
@@ -1221,32 +1211,33 @@ var mainState = (function (_super) {
         this.game.bullets.setAll('checkWorldBounds', true);
     };
     ;
-    mainState.prototype.createPlayer = function () {
-        var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0);
-        this.game.player = this.add.existing(oriol);
-    };
+    mainState.prototype.addMonster = function (monster) { this.game.add.existing(monster); this.game.monsters.add(monster); };
+    mainState.prototype.createPlayer = function () { var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0); this.game.player = this.add.existing(oriol); };
+    ;
+    mainState.prototype.restart = function () { this.game.state.restart(); };
+    mainState.prototype.resetMonster = function (monster) { monster.rotation = this.physics.arcade.angleBetween(monster, this.game.player); };
+    mainState.prototype.bulletHitWall = function (bullet) { this.explosion(bullet.x, bullet.y); bullet.kill(); };
+    mainState.prototype.createVirtualJoystick = function () { this.game.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK); };
+    ;
+    mainState.prototype.setupCamera = function () { this.camera.follow(this.game.player); };
     ;
     mainState.prototype.createMonsters = function () {
         this.game.monsters = this.add.group();
         var factory = new MonsterFactory(this.game);
-        //CREAREM 10 Robots
+        //CREAREM 10 Robots i els afegirem al joc
         for (var x = 0; x < 10; x++) {
-            this.addToGame(factory.createMonster('robot'));
+            this.addMonster(factory.createMonster('robot'));
         }
-        //CREAREM 5 Zombies tipus 1
+        //CREAREM 15 Zombies tipus 1 i els afegirem al joc
         for (var x = 0; x < 15; x++) {
-            this.addToGame(factory.createMonster('zombie1'));
+            this.addMonster(factory.createMonster('zombie1'));
         }
-        //CREAREM 3 Zombies tipus 2
+        //CREAREM 23 Zombies tipus 2 i els afegirem al joc
         for (var x = 0; x < 23; x++) {
-            this.addToGame(factory.createMonster('zombie2'));
+            this.addMonster(factory.createMonster('zombie2'));
         }
     };
     ;
-    mainState.prototype.addToGame = function (monster) {
-        this.game.add.existing(monster);
-        this.game.monsters.add(monster);
-    };
     return mainState;
 }(Phaser.State));
 // ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ----------
@@ -1325,7 +1316,7 @@ var Player = (function (_super) {
     __extends(Player, _super);
     function Player(name, startingLives, game, x, y, key, frame) {
         _super.call(this, game, x, y, key, frame);
-        this.observer = new Achievements();
+        this.details = new Details();
         this.game = game;
         this.NAME = name;
         this.SCORE = 0;
@@ -1335,45 +1326,63 @@ var Player = (function (_super) {
         this.body.maxVelocity.setTo(this.game.PLAYER_MAX_SPEED, this.game.PLAYER_MAX_SPEED);
         this.body.collideWorldBounds = true;
         this.body.drag.setTo(this.game.PLAYER_DRAG, this.game.PLAYER_DRAG);
-        this.observer.subscribe(this);
+        this.details.subscribe(this);
     }
-    Player.prototype.getScore = function () { return this.SCORE; };
+    Player.prototype.preUpdate = function () {
+        _super.prototype.preUpdate.call(this);
+        this.details.generateRandomAchievements();
+    };
     Player.prototype.update = function () {
         _super.prototype.update.call(this);
-        this.observer.notify(this);
+        this.details.update(this);
     };
+    Player.prototype.notify = function (notification) { this.game.achievementsText.setText(notification); };
+    Player.prototype.getScore = function () { return this.SCORE; };
     return Player;
 }(Phaser.Sprite));
-var Achievements //EL PLAYER ES SUBSCRIU ALS ACHIEVEMENTS PER OBSERVAR SI ELS HA COMPLERT O NO
+var Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS FACILMENT
  = (function () {
-    function Achievements //EL PLAYER ES SUBSCRIU ALS ACHIEVEMENTS PER OBSERVAR SI ELS HA COMPLERT O NO
-        () {
-        this.PLAYERS = new Array(); //WE WILL BE ABLE TO CREATE 10 PLAYERS AT MAXIMUM
-        this.index = 0;
-        this.ACHIEVEMENT_ONE = 100;
-        this.ACHIEVEMENT_TWO = 200;
-        this.ACHIEVEMENT_THREE = 300;
+    function Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS FACILMENT
+        (requeriment, message) {
+        this.REQUERIMENT = 0;
+        this.MESSAGE = "";
+        this.REQUERIMENT = requeriment;
+        this.MESSAGE = message;
     }
-    Achievements //EL PLAYER ES SUBSCRIU ALS ACHIEVEMENTS PER OBSERVAR SI ELS HA COMPLERT O NO
+    ;
+    return Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS FACILMENT
+    ;
+}());
+var Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLERT ACHIEVEMENTS O NO
+ = (function () {
+    function Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLERT ACHIEVEMENTS O NO
+        () {
+        this.PLAYERS = new Array();
+        this.ACHIEVEMENTS = new Array();
+        this.index = 0;
+    }
+    Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLERT ACHIEVEMENTS O NO
     .prototype.subscribe = function (player) {
         this.PLAYERS[this.index] = player;
         this.index++;
     };
-    Achievements //EL PLAYER ES SUBSCRIU ALS ACHIEVEMENTS PER OBSERVAR SI ELS HA COMPLERT O NO
-    .prototype.notify = function (player) {
+    Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLERT ACHIEVEMENTS O NO
+    .prototype.update = function (player) {
         for (var x = 0; x < this.PLAYERS.length; x++) {
-            if (this.PLAYERS[x].NAME == player.NAME && player.SCORE == 100) {
-                player.game.achievementsText.setText("YOU ARE NOW LEVEL 2!");
-            }
-            if (this.PLAYERS[x].NAME == player.NAME && player.SCORE == 200) {
-                player.game.achievementsText.setText("YOU ARE NOW LEVEL 3!");
-            }
-            if (this.PLAYERS[x].NAME == player.NAME && player.SCORE == 300) {
-                player.game.achievementsText.setText("YOU ARE NOW LEVEL 4!");
+            if (this.PLAYERS[x].NAME == player.NAME) {
+                for (var y = 0; y < this.ACHIEVEMENTS.length; y++) {
+                    if (player.SCORE == this.ACHIEVEMENTS[y].REQUERIMENT) {
+                        player.notify(this.ACHIEVEMENTS[y].MESSAGE);
+                    }
+                }
             }
         }
     };
-    return Achievements //EL PLAYER ES SUBSCRIU ALS ACHIEVEMENTS PER OBSERVAR SI ELS HA COMPLERT O NO
+    Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLERT ACHIEVEMENTS O NO
+    .prototype.generateRandomAchievements = function () { for (var x = 0; x < 5; x++) {
+        this.ACHIEVEMENTS[x] = new Achievement(x * 100, "YOU HAVE REACHED LEVEL " + x + "!");
+    } return true; };
+    return Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLERT ACHIEVEMENTS O NO
     ;
 }());
 //# sourceMappingURL=main.js.map

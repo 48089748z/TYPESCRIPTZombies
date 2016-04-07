@@ -144,9 +144,7 @@ class mainState extends Phaser.State
         this.game.tilemap = this.game.add.tilemap('tilemap');
         this.game.tilemap.addTilesetImage('tilesheet_complete', 'tiles');
     };
-    private createVirtualJoystick() {this.game.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK);};
 
-    private setupCamera() {this.camera.follow(this.game.player);};
 
    
     update():void
@@ -166,7 +164,7 @@ class mainState extends Phaser.State
         this.physics.arcade.collide(this.game.walls, this.game.monsters, this.resetMonster, null, this);
         this.physics.arcade.collide(this.game.monsters, this.game.monsters, this.resetMonster, null, this);
     }
-    resetMonster(monster:Phaser.Sprite) {monster.rotation = this.physics.arcade.angleBetween(monster, this.game.player);}
+
     
     private monsterTouchesPlayer(player:Phaser.Sprite, monster:Phaser.Sprite) {
         monster.kill();
@@ -178,12 +176,8 @@ class mainState extends Phaser.State
             this.input.onTap.addOnce(this.restart, this);
         }
     }
-    restart() {this.game.state.restart();}
 
-    private bulletHitWall(bullet:Phaser.Sprite) {
-        this.explosion(bullet.x, bullet.y);
-        bullet.kill();
-    }
+
 
     private bulletHitMonster(bullet:Phaser.Sprite, monster:Phaser.Sprite) {
         bullet.kill();
@@ -274,13 +268,12 @@ class mainState extends Phaser.State
         }
     }
 
-    explosion(x:number, y:number):void {
+    explosion(x:number, y:number):void
+    {
         var explosion:Phaser.Sprite = this.game.explosions.getFirstDead();
-        if (explosion) {
-            explosion.reset(
-                x - this.rnd.integerInRange(0, 5) + this.rnd.integerInRange(0, 5),
-                y - this.rnd.integerInRange(0, 5) + this.rnd.integerInRange(0, 5)
-            );
+        if (explosion)
+        {
+            explosion.reset(x - this.rnd.integerInRange(0, 5) + this.rnd.integerInRange(0, 5), y - this.rnd.integerInRange(0, 5) + this.rnd.integerInRange(0, 5));
             explosion.alpha = 0.6;
             explosion.angle = this.rnd.angle();
             explosion.scale.setTo(this.rnd.realInRange(0.5, 0.75));
@@ -309,36 +302,32 @@ class mainState extends Phaser.State
         this.game.bullets.setAll('checkWorldBounds', true);
     };
 
-    private createPlayer()
-    {
-        var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0);
-        this.game.player = this.add.existing(oriol);
-    };
-
+    addMonster(monster:Monster) {this.game.add.existing(monster); this.game.monsters.add(monster);}
+    createPlayer() {var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0); this.game.player = this.add.existing(oriol);};
+    restart() {this.game.state.restart();}
+    resetMonster(monster:Phaser.Sprite) {monster.rotation = this.physics.arcade.angleBetween(monster, this.game.player);}
+    bulletHitWall(bullet:Phaser.Sprite) {this.explosion(bullet.x, bullet.y);bullet.kill();}
+    createVirtualJoystick() {this.game.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK);};
+    setupCamera() {this.camera.follow(this.game.player);};
     private createMonsters()
     {
         this.game.monsters = this.add.group();
         var factory = new MonsterFactory(this.game);
 
-        //CREAREM 10 Robots
-        for (var x=0; x<10; x++) {this.addToGame(factory.createMonster('robot'));}
+        //CREAREM 10 Robots i els afegirem al joc
+        for (var x=0; x<10; x++) {this.addMonster(factory.createMonster('robot'));}
 
-        //CREAREM 5 Zombies tipus 1
-        for (var x=0; x<15; x++) {this.addToGame(factory.createMonster('zombie1'));}
+        //CREAREM 15 Zombies tipus 1 i els afegirem al joc
+        for (var x=0; x<15; x++) {this.addMonster(factory.createMonster('zombie1'));}
 
-        //CREAREM 3 Zombies tipus 2
-        for (var x=0; x<23; x++) {this.addToGame(factory.createMonster('zombie2'));}
+        //CREAREM 23 Zombies tipus 2 i els afegirem al joc
+        for (var x=0; x<23; x++) {this.addMonster(factory.createMonster('zombie2'));}
     };
-    private addToGame(monster:Monster)
-    {
-        this.game.add.existing(monster);
-        this.game.monsters.add(monster);
-    }
 }
 
 
 // ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ----------
-class Monster extends Phaser.Sprite
+class Monster extends Phaser.Sprite //MONSTER PER DEFECTE TINDRA TOT EL QUE TINDRIA CUALSEVOL MONSTER, DE CUALSEVOL TIPUS
 {
     game:ShooterGame;
     MONSTER_HEALTH = 0; //AQUESTES DUES VARIABLES LES TENEN TOTS ELS MONSTRES PERO VARIARAN SEGONS QUIN MONSTRE CREEM, IGUAL QUE AMB LES MONES DE CIUTAT O POBLE, AMB DIFERENTS INGREDIENTS
@@ -372,7 +361,7 @@ class MonsterFactory //A LA FACTORY DE MONSTRES LI DIREM QUE VOLEM, AIXO SERIA C
         else{return null;}
     }
 }
-class RobotMonster extends Monster
+class RobotMonster extends Monster //ELS MONSTERS ESPECIFICS TINDRAN DIFERENT NOM I PUNTS DE VIDA
 {
     constructor(game:ShooterGame, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
     {
@@ -404,7 +393,7 @@ class Zombie2Monster extends Monster
 class Player extends Phaser.Sprite
 {
     game:ShooterGame;
-    observer:Achievements = new Achievements();
+    details:Details = new Details();
     SCORE:number;
     NAME:string;
     constructor(name:string, startingLives:number, game:ShooterGame, x:number, y:number, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture, frame:string|number)
@@ -419,35 +408,58 @@ class Player extends Phaser.Sprite
         this.body.maxVelocity.setTo(this.game.PLAYER_MAX_SPEED, this.game.PLAYER_MAX_SPEED);
         this.body.collideWorldBounds = true;
         this.body.drag.setTo(this.game.PLAYER_DRAG, this.game.PLAYER_DRAG);
-        this.observer.subscribe(this);
+        this.details.subscribe(this);
     }
-    getScore():number{return this.SCORE;}
+
+    preUpdate():void {
+        super.preUpdate();
+        this.details.generateRandomAchievements();
+    }
+
     update():void
     {
         super.update();
-        this.observer.notify(this);
+        this.details.update(this);
     }
+    notify(notification:string):void {this.game.achievementsText.setText(notification);}
+    getScore():number{return this.SCORE;}
 }
-class Achievements //EL PLAYER ES SUBSCRIU ALS ACHIEVEMENTS PER OBSERVAR SI ELS HA COMPLERT O NO
+class Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS FACILMENT
 {
-    PLAYERS:Array<Player> = new Array<Player>(); //WE WILL BE ABLE TO CREATE 10 PLAYERS AT MAXIMUM
+    REQUERIMENT:number = 0;
+    MESSAGE:string = "";
+    constructor(requeriment:number, message:string)
+    {
+        this.REQUERIMENT = requeriment;
+        this.MESSAGE = message;
+    };
+}
+class Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLERT ACHIEVEMENTS O NO
+{
+    PLAYERS:Array<Player> = new Array<Player>();
+    ACHIEVEMENTS:Array<Achievement> = new Array<Achievement>();
     index:number = 0;
-    ACHIEVEMENT_ONE:number = 100;
-    ACHIEVEMENT_TWO:number = 200;
-    ACHIEVEMENT_THREE:number = 300;
     constructor(){}
     subscribe(player:Player)
     {
         this.PLAYERS[this.index] = player;
         this.index++;
     }
-    notify(player:Player):void
+    update(player:Player):void
     {
-        for (var x=0; x<this.PLAYERS.length; x++)
+        for (var x=0; x<this.PLAYERS.length; x++) //PER CADASCUN DELS JUGADORS DEL ARRAYLIST
         {
-            if (this.PLAYERS[x].NAME == player.NAME && player.SCORE == 100) { player.game.achievementsText.setText("YOU ARE NOW LEVEL 2!");}
-            if (this.PLAYERS[x].NAME == player.NAME && player.SCORE == 200) { player.game.achievementsText.setText("YOU ARE NOW LEVEL 3!");}
-            if (this.PLAYERS[x].NAME == player.NAME && player.SCORE == 300) { player.game.achievementsText.setText("YOU ARE NOW LEVEL 4!");}
+            if (this.PLAYERS[x].NAME == player.NAME) //COMPROVA QUE EL QUE DEMANA LA INFORMACIÓ ESTA SUBSCRIT
+            {
+                for (var y=0; y<this.ACHIEVEMENTS.length; y++) //I MIRA SI TE ALGUN ACHIEVEMENT NOU
+                {
+                    if (player.SCORE == this.ACHIEVEMENTS[y].REQUERIMENT)
+                    {
+                        player.notify(this.ACHIEVEMENTS[y].MESSAGE);
+                    }
+                }
+            }
         }
     }
+    generateRandomAchievements():boolean {for (var x=0; x<5; x++) {this.ACHIEVEMENTS[x] = new Achievement(x*100, "YOU HAVE REACHED LEVEL "+x+"!");} return true;}
 }
