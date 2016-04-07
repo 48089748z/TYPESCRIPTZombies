@@ -1,3 +1,8 @@
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 /**
  * Phaser joystick plugin.
  * Usage: In your preloader function call the static method preloadAssets. It will handle the preload of the necessary
@@ -7,11 +12,6 @@
  * Use the speed dictionary to retrieve the input speed (if you are going to use an analog joystick)
  */
 /// <reference path="../phaser/phaser.d.ts"/>
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
 var Gamepads;
 (function (Gamepads) {
     (function (Sectors) {
@@ -295,7 +295,7 @@ var Gamepads;
             game.load.image('joystick_knob', assets_path + '/joystick_knob.png');
         };
         return Joystick;
-    })(Phaser.Plugin);
+    }(Phaser.Plugin));
     Gamepads.Joystick = Joystick;
 })(Gamepads || (Gamepads = {}));
 /// <reference path="../phaser/phaser.d.ts"/>
@@ -350,7 +350,7 @@ var Gamepads;
                 this.lineToRadians(pj * (Math.PI * 2) + this.rotation, radius);
         };
         return PieMask;
-    })(Phaser.Graphics);
+    }(Phaser.Graphics));
     Gamepads.PieMask = PieMask;
 })(Gamepads || (Gamepads = {}));
 /// <reference path="../phaser/phaser.d.ts"/>
@@ -472,7 +472,7 @@ var Gamepads;
             }
         };
         return Button;
-    })(Phaser.Plugin);
+    }(Phaser.Plugin));
     Gamepads.Button = Button;
 })(Gamepads || (Gamepads = {}));
 /// <reference path="Button.ts"/>
@@ -719,7 +719,7 @@ var Gamepads;
             game.load.image('button5', assets_path + '/button5.png');
         };
         return ButtonPad;
-    })(Phaser.Plugin);
+    }(Phaser.Plugin));
     Gamepads.ButtonPad = ButtonPad;
 })(Gamepads || (Gamepads = {}));
 /// <reference path="../phaser/phaser.d.ts"/>
@@ -865,7 +865,7 @@ var Gamepads;
             game.load.image('joystick_knob', assets_path + '/joystick_knob.png');
         };
         return TouchInput;
-    })(Phaser.Plugin);
+    }(Phaser.Plugin));
     Gamepads.TouchInput = TouchInput;
 })(Gamepads || (Gamepads = {}));
 /// <reference path="../phaser/phaser.d.ts"/>
@@ -888,11 +888,10 @@ var Gamepads;
         __extends(GamePad, _super);
         function GamePad(game, type, buttonPadType) {
             _super.call(this, game, new PIXI.DisplayObject());
-            this.test = 0;
             this.game = game;
             switch (type) {
                 case GamepadType.DOUBLE_STICK:
-                    this.initDoublStick();
+                    this.initDoubleStick();
                     break;
                 case GamepadType.SINGLE_STICK:
                     this.initSingleStick();
@@ -911,7 +910,7 @@ var Gamepads;
                     break;
             }
         }
-        GamePad.prototype.initDoublStick = function () {
+        GamePad.prototype.initDoubleStick = function () {
             this.stick1 = new Gamepads.Joystick(this.game, Gamepads.Sectors.HALF_LEFT);
             this.stick2 = new Gamepads.Joystick(this.game, Gamepads.Sectors.HALF_RIGHT);
             this.game.add.plugin(this.stick1, null);
@@ -951,11 +950,12 @@ var Gamepads;
             Gamepads.ButtonPad.preloadAssets(game, assets_path);
         };
         return GamePad;
-    })(Phaser.Plugin);
+    }(Phaser.Plugin));
     Gamepads.GamePad = GamePad;
 })(Gamepads || (Gamepads = {}));
 /// <reference path="phaser/phaser.d.ts"/>
 /// <reference path="joypad/GamePad.ts"/>
+window.onload = function () { new ShooterGame(); };
 var ShooterGame = (function (_super) {
     __extends(ShooterGame, _super);
     function ShooterGame() {
@@ -974,10 +974,7 @@ var ShooterGame = (function (_super) {
         this.state.start('main');
     }
     return ShooterGame;
-})(Phaser.Game);
-window.onload = function () {
-    var game = new ShooterGame();
-};
+}(Phaser.Game));
 var mainState = (function (_super) {
     __extends(mainState, _super);
     function mainState() {
@@ -1031,7 +1028,7 @@ var mainState = (function (_super) {
     mainState.prototype.createTexts = function () {
         var width = this.scale.bounds.width;
         var height = this.scale.bounds.height;
-        this.game.scoreText = this.add.text(this.game.TEXT_MARGIN, this.game.TEXT_MARGIN, 'Score: ' + this.score, { font: "30px Arial", fill: "#ffffff" });
+        this.game.scoreText = this.add.text(this.game.TEXT_MARGIN, this.game.TEXT_MARGIN, 'Score: ' + this.game.score, { font: "30px Arial", fill: "#ffffff" });
         this.game.scoreText.fixedToCamera = true;
         this.game.livesText = this.add.text(width - this.game.TEXT_MARGIN, this.game.TEXT_MARGIN, 'Lives: ' + this.game.player.health, { font: "30px Arial", fill: "#ffffff" });
         this.game.livesText.anchor.setTo(1, 0);
@@ -1072,9 +1069,6 @@ var mainState = (function (_super) {
         this.game.tilemap.addTilesetImage('tilesheet_complete', 'tiles');
     };
     ;
-    mainState.prototype.setRandomAngle = function (monster) {
-        monster.angle = this.rnd.angle();
-    };
     mainState.prototype.createVirtualJoystick = function () { this.game.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK); };
     ;
     mainState.prototype.setupCamera = function () {
@@ -1082,13 +1076,13 @@ var mainState = (function (_super) {
     };
     ;
     mainState.prototype.createPlayer = function () {
-        this.player = this.add.sprite(this.world.centerX, this.world.centerY, 'player');
-        this.player.anchor.setTo(0.5, 0.5);
-        this.player.health = this.LIVES;
-        this.physics.enable(this.player, Phaser.Physics.ARCADE);
-        this.player.body.maxVelocity.setTo(this.PLAYER_MAX_SPEED, this.PLAYER_MAX_SPEED); // x, y
-        this.player.body.collideWorldBounds = true;
-        this.player.body.drag.setTo(this.PLAYER_DRAG, this.PLAYER_DRAG); // x, y
+        this.game.player = this.add.sprite(this.world.centerX, this.world.centerY, 'player');
+        this.game.player.anchor.setTo(0.5, 0.5);
+        this.game.player.health = this.game.LIVES;
+        this.game.physics.enable(this.game.player, Phaser.Physics.ARCADE);
+        this.game.player.body.maxVelocity.setTo(this.game.PLAYER_MAX_SPEED, this.game.PLAYER_MAX_SPEED); // x, y
+        this.game.player.body.collideWorldBounds = true;
+        this.game.player.body.drag.setTo(this.game.PLAYER_DRAG, this.game.PLAYER_DRAG); // x, y
     };
     ;
     mainState.prototype.update = function () {
@@ -1099,45 +1093,31 @@ var mainState = (function (_super) {
             this.rotatePlayerToPointer();
             this.fireWhenButtonClicked();
         }
-        else {
-            this.rotateWithRightStick();
-            this.fireWithRightStick();
-        }
-        this.physics.arcade.collide(this.player, this.monsters, this.monsterTouchesPlayer, null, this);
-        this.physics.arcade.collide(this.player, this.walls);
-        this.physics.arcade.overlap(this.bullets, this.monsters, this.bulletHitMonster, null, this);
-        this.physics.arcade.collide(this.bullets, this.walls, this.bulletHitWall, null, this);
-        this.physics.arcade.collide(this.walls, this.monsters, Monster.resetMonster, null, this);
-        this.physics.arcade.collide(this.monsters, this.monsters, Monster.resetMonster, null, this);
+        this.physics.arcade.collide(this.game.player, this.game.monsters, this.monsterTouchesPlayer, null, this);
+        this.physics.arcade.collide(this.game.player, this.game.walls);
+        this.physics.arcade.overlap(this.game.bullets, this.game.monsters, this.bulletHitMonster, null, this);
+        this.physics.arcade.collide(this.game.bullets, this.game.walls, this.bulletHitWall, null, this);
+        this.physics.arcade.collide(this.game.walls, this.game.monsters, this.resetMonster, null, this);
+        this.physics.arcade.collide(this.game.monsters, this.game.monsters, this.resetMonster, null, this);
     };
-    mainState.prototype.rotateWithRightStick = function () {
-        var speed = this.gamepad.stick2.speed;
-        if (Math.abs(speed.x) + Math.abs(speed.y) > 20) {
-            var rotatePos = new Phaser.Point(this.player.x + speed.x, this.player.y + speed.y);
-            this.player.rotation = this.physics.arcade.angleToXY(this.player, rotatePos.x, rotatePos.y);
-            this.fire();
-        }
-    };
-    mainState.prototype.fireWithRightStick = function () {
-        //this.gamepad.stick2.
-    };
+    mainState.prototype.resetMonster = function (monster) { monster.rotation = this.physics.arcade.angleBetween(monster, this.game.player); };
     mainState.prototype.monsterTouchesPlayer = function (player, monster) {
         monster.kill();
         player.damage(1);
-        this.livesText.setText("Lives: " + this.player.health);
+        this.game.livesText.setText("Lives: " + this.game.player.health);
         this.blink(player);
         if (player.health == 0) {
-            this.stateText.text = " GAME OVER \n Click to restart";
-            this.stateText.visible = true;
-            //the "click to restart" handler
+            this.game.stateText.text = " GAME OVER \n Click to restart";
+            this.game.stateText.visible = true;
             this.input.onTap.addOnce(this.restart, this);
         }
     };
     mainState.prototype.restart = function () {
-        this.score = 0;
+        this.game.player.health = 100;
+        this.game.score = 0;
         this.game.state.restart();
     };
-    mainState.prototype.bulletHitWall = function (bullet, walls) {
+    mainState.prototype.bulletHitWall = function (bullet) {
         this.explosion(bullet.x, bullet.y);
         bullet.kill();
     };
@@ -1149,8 +1129,8 @@ var mainState = (function (_super) {
             this.blink(monster);
         }
         else {
-            this.score += 10;
-            this.scoreText.setText("Score: " + this.score);
+            this.game.score += 10;
+            this.game.scoreText.setText("Score: " + this.game.score);
         }
     };
     mainState.prototype.blink = function (sprite) {
@@ -1160,60 +1140,57 @@ var mainState = (function (_super) {
         tween.repeat(3);
         tween.start();
     };
-    mainState.prototype.moveMonsters = function () { this.monsters.forEach(this.advanceStraightAhead, this); };
+    mainState.prototype.moveMonsters = function () { this.game.monsters.forEach(this.advanceStraightAhead, this); };
     ;
-    mainState.prototype.advanceStraightAhead = function (monster) { this.physics.arcade.velocityFromAngle(monster.angle, this.MONSTER_SPEED, monster.body.velocity); };
+    mainState.prototype.advanceStraightAhead = function (monster) { this.physics.arcade.velocityFromAngle(monster.angle, this.game.MONSTER_SPEED, monster.body.velocity); };
     mainState.prototype.fireWhenButtonClicked = function () { if (this.input.activePointer.isDown) {
         this.fire();
     } };
     ;
     mainState.prototype.rotatePlayerToPointer = function () {
-        this.player.rotation = this.physics.arcade.angleToPointer(this.player, this.input.activePointer);
+        this.game.player.rotation = this.physics.arcade.angleToPointer(this.game.player, this.input.activePointer);
     };
     ;
     mainState.prototype.movePlayer = function () {
         var moveWithKeyboard = function () {
-            if (this.cursors.left.isDown ||
-                this.input.keyboard.isDown(Phaser.Keyboard.A)) {
-                this.player.body.acceleration.x = -this.PLAYER_ACCELERATION;
+            if (this.game.cursors.left.isDown || this.input.keyboard.isDown(Phaser.Keyboard.A)) {
+                this.game.player.body.acceleration.x = -this.game.PLAYER_ACCELERATION;
             }
-            else if (this.cursors.right.isDown ||
-                this.input.keyboard.isDown(Phaser.Keyboard.D)) {
-                this.player.body.acceleration.x = this.PLAYER_ACCELERATION;
+            if (this.game.cursors.right.isDown || this.input.keyboard.isDown(Phaser.Keyboard.D)) {
+                this.game.player.body.acceleration.x = this.game.PLAYER_ACCELERATION;
             }
-            else if (this.cursors.up.isDown ||
-                this.input.keyboard.isDown(Phaser.Keyboard.W)) {
-                this.player.body.acceleration.y = -this.PLAYER_ACCELERATION;
+            if (this.game.cursors.up.isDown || this.input.keyboard.isDown(Phaser.Keyboard.W)) {
+                this.game.player.body.acceleration.y = -this.game.PLAYER_ACCELERATION;
             }
-            else if (this.cursors.down.isDown ||
-                this.input.keyboard.isDown(Phaser.Keyboard.S)) {
-                this.player.body.acceleration.y = this.PLAYER_ACCELERATION;
+            if (this.game.cursors.down.isDown || this.input.keyboard.isDown(Phaser.Keyboard.S)) {
+                this.game.player.body.acceleration.y = this.game.PLAYER_ACCELERATION;
             }
             else {
-                this.player.body.acceleration.x = 0;
-                this.player.body.acceleration.y = 0;
+                this.game.player.body.acceleration.x = 0;
+                this.game.player.body.acceleration.y = 0;
             }
         };
         var moveWithVirtualJoystick = function () {
-            if (this.gamepad.stick1.cursors.left) {
-                this.player.body.acceleration.x = -this.PLAYER_ACCELERATION;
+            if (this.game.gamepad.stick1.cursors.left) {
+                this.game.player.body.acceleration.x = -this.game.PLAYER_ACCELERATION;
             }
-            if (this.gamepad.stick1.cursors.right) {
-                this.player.body.acceleration.x = this.PLAYER_ACCELERATION;
+            if (this.game.gamepad.stick1.cursors.right) {
+                this.game.player.body.acceleration.x = this.game.PLAYER_ACCELERATION;
             }
-            else if (this.gamepad.stick1.cursors.up) {
-                this.player.body.acceleration.y = -this.PLAYER_ACCELERATION;
+            if (this.game.gamepad.stick1.cursors.up) {
+                this.game.player.body.acceleration.y = -this.game.PLAYER_ACCELERATION;
             }
-            else if (this.gamepad.stick1.cursors.down) {
-                this.player.body.acceleration.y = this.PLAYER_ACCELERATION;
+            if (this.game.gamepad.stick1.cursors.down) {
+                this.game.player.body.acceleration.y = this.game.PLAYER_ACCELERATION;
             }
             else {
-                this.player.body.acceleration.x = 0;
-                this.player.body.acceleration.y = 0;
+                this.game.player.body.acceleration.x = 0;
+                this.game.player.body.acceleration.y = 0;
             }
         };
         if (this.game.device.desktop) {
             moveWithKeyboard.call(this);
+            moveWithVirtualJoystick.call(this);
         }
         else {
             moveWithVirtualJoystick.call(this);
@@ -1221,23 +1198,23 @@ var mainState = (function (_super) {
     };
     ;
     mainState.prototype.fire = function () {
-        if (this.time.now > this.nextFire) {
-            var bullet = this.bullets.getFirstDead();
+        if (this.time.now > this.game.nextFire) {
+            var bullet = this.game.bullets.getFirstDead();
             if (bullet) {
-                var length = this.player.width * 0.5 + 20;
-                var x = this.player.x + (Math.cos(this.player.rotation) * length);
-                var y = this.player.y + (Math.sin(this.player.rotation) * length);
+                var length = this.game.player.width * 0.5 + 20;
+                var x = this.game.player.x + (Math.cos(this.game.player.rotation) * length);
+                var y = this.game.player.y + (Math.sin(this.game.player.rotation) * length);
                 bullet.reset(x, y);
                 this.explosion(x, y);
-                bullet.angle = this.player.angle;
-                var velocity = this.physics.arcade.velocityFromRotation(bullet.rotation, this.BULLET_SPEED);
+                bullet.angle = this.game.player.angle;
+                var velocity = this.physics.arcade.velocityFromRotation(bullet.rotation, this.game.BULLET_SPEED);
                 bullet.body.velocity.setTo(velocity.x, velocity.y);
-                this.nextFire = this.time.now + this.FIRE_RATE;
+                this.game.nextFire = this.time.now + this.game.FIRE_RATE;
             }
         }
     };
     mainState.prototype.explosion = function (x, y) {
-        var explosion = this.explosions.getFirstDead();
+        var explosion = this.game.explosions.getFirstDead();
         if (explosion) {
             explosion.reset(x - this.rnd.integerInRange(0, 5) + this.rnd.integerInRange(0, 5), y - this.rnd.integerInRange(0, 5) + this.rnd.integerInRange(0, 5));
             explosion.alpha = 0.6;
@@ -1252,20 +1229,20 @@ var mainState = (function (_super) {
         }
     };
     mainState.prototype.createBullets = function () {
-        this.bullets = this.add.group();
-        this.bullets.enableBody = true;
-        this.bullets.physicsBodyType = Phaser.Physics.ARCADE;
-        this.bullets.createMultiple(20, 'bullet');
-        this.bullets.setAll('anchor.x', 0.5);
-        this.bullets.setAll('anchor.y', 0.5);
-        this.bullets.setAll('scale.x', 0.5);
-        this.bullets.setAll('scale.y', 0.5);
-        this.bullets.setAll('outOfBoundsKill', true);
-        this.bullets.setAll('checkWorldBounds', true);
+        this.game.bullets = this.add.group();
+        this.game.bullets.enableBody = true;
+        this.game.bullets.physicsBodyType = Phaser.Physics.ARCADE;
+        this.game.bullets.createMultiple(20, 'bullet');
+        this.game.bullets.setAll('anchor.x', 0.5);
+        this.game.bullets.setAll('anchor.y', 0.5);
+        this.game.bullets.setAll('scale.x', 0.5);
+        this.game.bullets.setAll('scale.y', 0.5);
+        this.game.bullets.setAll('outOfBoundsKill', true);
+        this.game.bullets.setAll('checkWorldBounds', true);
     };
     ;
     mainState.prototype.createMonsters = function () {
-        this.monsters = this.add.group();
+        this.game.monsters = this.add.group();
         var factory = new MonsterFactory(this.game);
         //CREAREM 10 Robots
         for (var x = 0; x < 10; x++) {
@@ -1282,11 +1259,11 @@ var mainState = (function (_super) {
     };
     ;
     mainState.prototype.addToGame = function (monster) {
-        this.add.existing(monster);
-        this.monsters.add(monster);
+        this.game.add.existing(monster);
+        this.game.monsters.add(monster);
     };
     return mainState;
-})(Phaser.State);
+}(Phaser.State));
 var MonsterFactory = (function () {
     function MonsterFactory(game) {
         this.game = game;
@@ -1304,10 +1281,9 @@ var MonsterFactory = (function () {
         else {
             return null;
         }
-        ;
     };
     return MonsterFactory;
-})();
+}());
 var Monster = (function (_super) {
     __extends(Monster, _super);
     function Monster(game, x, y, key, frame) {
@@ -1317,13 +1293,15 @@ var Monster = (function (_super) {
         this.body.enableBody = true;
         this.anchor.setTo(0.5, 0.5);
         this.angle = game.rnd.angle();
-        this.events.onOutOfBounds(this.resetMonster, this);
+        this.checkWorldBounds = true;
     }
-    Monster.prototype.resetMonster = function (monster) {
-        monster.rotation = this.game.physics.arcade.angleBetween(monster, this.game.player);
+    Monster.prototype.update = function () {
+        _super.prototype.update.call(this);
+        this.events.onOutOfBounds.add(this.resetMonster, this);
     };
+    Monster.prototype.resetMonster = function (monster) { monster.rotation = this.game.physics.arcade.angleBetween(monster, this.game.player); };
     return Monster;
-})(Phaser.Sprite);
+}(Phaser.Sprite));
 var RobotMonster = (function (_super) {
     __extends(RobotMonster, _super);
     function RobotMonster(game, key) {
@@ -1334,7 +1312,7 @@ var RobotMonster = (function (_super) {
         this.name = this.NAME;
     }
     return RobotMonster;
-})(Monster);
+}(Monster));
 var Zombie1Monster = (function (_super) {
     __extends(Zombie1Monster, _super);
     function Zombie1Monster(game, key) {
@@ -1345,7 +1323,7 @@ var Zombie1Monster = (function (_super) {
         this.name = this.NAME;
     }
     return Zombie1Monster;
-})(Monster);
+}(Monster));
 var Zombie2Monster = (function (_super) {
     __extends(Zombie2Monster, _super);
     function Zombie2Monster(game, key) {
@@ -1356,5 +1334,5 @@ var Zombie2Monster = (function (_super) {
         this.name = this.NAME;
     }
     return Zombie2Monster;
-})(Monster);
+}(Monster));
 //# sourceMappingURL=main.js.map

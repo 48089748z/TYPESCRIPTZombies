@@ -18,26 +18,21 @@ module Gamepads {
     export class GamePad extends Phaser.Plugin {
 
         game:Phaser.Game;
-
         stick1:Gamepads.Joystick;
         stick2:Gamepads.Joystick;
         stick3:Gamepads.Joystick;
         stick4:Gamepads.Joystick;
-
         buttonPad:Gamepads.ButtonPad;
         touchInput:Gamepads.TouchInput;
-
         info:Phaser.Text;
-        test:number = 0;
-
-
-        constructor(game:Phaser.Game, type:GamepadType, buttonPadType?:Gamepads.ButtonPadType) {
+        constructor(game:Phaser.Game, type:GamepadType, buttonPadType?:Gamepads.ButtonPadType)
+        {
             super(game, new PIXI.DisplayObject());
             this.game = game;
 
             switch (type) {
                 case GamepadType.DOUBLE_STICK:
-                    this.initDoublStick();
+                    this.initDoubleStick();
                     break;
 
                 case GamepadType.SINGLE_STICK:
@@ -64,7 +59,7 @@ module Gamepads {
 
         }
 
-        initDoublStick():void {
+        initDoubleStick():void {
 
             this.stick1 = new Gamepads.Joystick(this.game, Gamepads.Sectors.HALF_LEFT);
             this.stick2 = new Gamepads.Joystick(this.game, Gamepads.Sectors.HALF_RIGHT);
@@ -111,11 +106,9 @@ module Gamepads {
         initGesture() {
             this.touchInput = new Gamepads.TouchInput(this.game, Gamepads.Sectors.ALL);
         }
-
         static preloadAssets(game:Phaser.Game, assets_path:string):void {
             Gamepads.Joystick.preloadAssets(game, assets_path);
             Gamepads.ButtonPad.preloadAssets(game, assets_path);
         }
-
     }
 }
