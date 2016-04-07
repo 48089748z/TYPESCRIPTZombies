@@ -959,17 +959,15 @@ window.onload = function () { new ShooterGame(); };
 var ShooterGame = (function (_super) {
     __extends(ShooterGame, _super);
     function ShooterGame() {
-        _super.call(this, 800, 480, Phaser.CANVAS, 'gameDiv');
+        _super.call(this, 1000, 1000, Phaser.CANVAS, 'gameDiv');
         this.PLAYER_ACCELERATION = 500;
         this.PLAYER_MAX_SPEED = 400; // pixels/second
         this.PLAYER_DRAG = 600;
         this.MONSTER_SPEED = 200;
-        this.BULLET_SPEED = 500;
-        this.FIRE_RATE = 1;
-        this.LIVES = 100;
+        this.BULLET_SPEED = 600;
+        this.FIRE_RATE = 150;
         this.TEXT_MARGIN = 50;
-        this.nextFire = 0;
-        this.score = 0;
+        this.NEXT_FIRE = 0;
         this.state.add('main', mainState);
         this.state.start('main');
     }
@@ -1028,15 +1026,17 @@ var mainState = (function (_super) {
     mainState.prototype.createTexts = function () {
         var width = this.scale.bounds.width;
         var height = this.scale.bounds.height;
-        this.game.scoreText = this.add.text(this.game.TEXT_MARGIN, this.game.TEXT_MARGIN, 'Score: ' + this.game.score, { font: "30px Arial", fill: "#ffffff" });
+        this.game.scoreText = this.add.text(this.game.TEXT_MARGIN, this.game.TEXT_MARGIN, 'Score: ' + this.game.player.getScore(), { font: "30px Arial", fill: "#ffffff" });
         this.game.scoreText.fixedToCamera = true;
         this.game.livesText = this.add.text(width - this.game.TEXT_MARGIN, this.game.TEXT_MARGIN, 'Lives: ' + this.game.player.health, { font: "30px Arial", fill: "#ffffff" });
         this.game.livesText.anchor.setTo(1, 0);
         this.game.livesText.fixedToCamera = true;
         this.game.stateText = this.add.text(width / 2, height / 2, '', { font: '84px Arial', fill: '#fff' });
         this.game.stateText.anchor.setTo(0.5, 0.5);
-        this.game.stateText.visible = false;
         this.game.stateText.fixedToCamera = true;
+        this.game.achievementsText = this.add.text(this.world.centerX, 30, "THIS IS THE OBSERVER PATTERN", { font: "30px Arial", fill: "#ffffff" });
+        this.game.achievementsText.anchor.setTo(0.5, 0.5);
+        this.game.achievementsText.fixedToCamera = true;
     };
     ;
     mainState.prototype.createExplosions = function () {
@@ -1045,9 +1045,7 @@ var mainState = (function (_super) {
         this.game.explosions.createMultiple(20, 'explosion');
         this.game.explosions.setAll('anchor.x', 0.5);
         this.game.explosions.setAll('anchor.y', 0.5);
-        this.game.explosions.forEach(function (explosion) {
-            explosion.loadTexture(_this.rnd.pick(['explosion', 'explosion2', 'explosion3']));
-        }, this);
+        this.game.explosions.forEach(function (explosion) { explosion.loadTexture(_this.rnd.pick(['explosion', 'explosion2', 'explosion3'])); }, this);
     };
     ;
     mainState.prototype.createWalls = function () {
@@ -1071,19 +1069,7 @@ var mainState = (function (_super) {
     ;
     mainState.prototype.createVirtualJoystick = function () { this.game.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK); };
     ;
-    mainState.prototype.setupCamera = function () {
-        this.camera.follow(this.game.player);
-    };
-    ;
-    mainState.prototype.createPlayer = function () {
-        this.game.player = this.add.sprite(this.world.centerX, this.world.centerY, 'player');
-        this.game.player.anchor.setTo(0.5, 0.5);
-        this.game.player.health = this.game.LIVES;
-        this.game.physics.enable(this.game.player, Phaser.Physics.ARCADE);
-        this.game.player.body.maxVelocity.setTo(this.game.PLAYER_MAX_SPEED, this.game.PLAYER_MAX_SPEED); // x, y
-        this.game.player.body.collideWorldBounds = true;
-        this.game.player.body.drag.setTo(this.game.PLAYER_DRAG, this.game.PLAYER_DRAG); // x, y
-    };
+    mainState.prototype.setupCamera = function () { this.camera.follow(this.game.player); };
     ;
     mainState.prototype.update = function () {
         _super.prototype.update.call(this);
@@ -1108,15 +1094,10 @@ var mainState = (function (_super) {
         this.blink(player);
         if (player.health == 0) {
             this.game.stateText.text = " GAME OVER \n Click to restart";
-            this.game.stateText.visible = true;
             this.input.onTap.addOnce(this.restart, this);
         }
     };
-    mainState.prototype.restart = function () {
-        this.game.player.health = 100;
-        this.game.score = 0;
-        this.game.state.restart();
-    };
+    mainState.prototype.restart = function () { this.game.state.restart(); };
     mainState.prototype.bulletHitWall = function (bullet) {
         this.explosion(bullet.x, bullet.y);
         bullet.kill();
@@ -1129,8 +1110,8 @@ var mainState = (function (_super) {
             this.blink(monster);
         }
         else {
-            this.game.score += 10;
-            this.game.scoreText.setText("Score: " + this.game.score);
+            this.game.player.SCORE += 10;
+            this.game.scoreText.setText("Score: " + this.game.player.getScore());
         }
     };
     mainState.prototype.blink = function (sprite) {
@@ -1156,13 +1137,13 @@ var mainState = (function (_super) {
             if (this.game.cursors.left.isDown || this.input.keyboard.isDown(Phaser.Keyboard.A)) {
                 this.game.player.body.acceleration.x = -this.game.PLAYER_ACCELERATION;
             }
-            if (this.game.cursors.right.isDown || this.input.keyboard.isDown(Phaser.Keyboard.D)) {
+            else if (this.game.cursors.right.isDown || this.input.keyboard.isDown(Phaser.Keyboard.D)) {
                 this.game.player.body.acceleration.x = this.game.PLAYER_ACCELERATION;
             }
-            if (this.game.cursors.up.isDown || this.input.keyboard.isDown(Phaser.Keyboard.W)) {
+            else if (this.game.cursors.up.isDown || this.input.keyboard.isDown(Phaser.Keyboard.W)) {
                 this.game.player.body.acceleration.y = -this.game.PLAYER_ACCELERATION;
             }
-            if (this.game.cursors.down.isDown || this.input.keyboard.isDown(Phaser.Keyboard.S)) {
+            else if (this.game.cursors.down.isDown || this.input.keyboard.isDown(Phaser.Keyboard.S)) {
                 this.game.player.body.acceleration.y = this.game.PLAYER_ACCELERATION;
             }
             else {
@@ -1174,13 +1155,13 @@ var mainState = (function (_super) {
             if (this.game.gamepad.stick1.cursors.left) {
                 this.game.player.body.acceleration.x = -this.game.PLAYER_ACCELERATION;
             }
-            if (this.game.gamepad.stick1.cursors.right) {
+            else if (this.game.gamepad.stick1.cursors.right) {
                 this.game.player.body.acceleration.x = this.game.PLAYER_ACCELERATION;
             }
-            if (this.game.gamepad.stick1.cursors.up) {
+            else if (this.game.gamepad.stick1.cursors.up) {
                 this.game.player.body.acceleration.y = -this.game.PLAYER_ACCELERATION;
             }
-            if (this.game.gamepad.stick1.cursors.down) {
+            else if (this.game.gamepad.stick1.cursors.down) {
                 this.game.player.body.acceleration.y = this.game.PLAYER_ACCELERATION;
             }
             else {
@@ -1190,7 +1171,6 @@ var mainState = (function (_super) {
         };
         if (this.game.device.desktop) {
             moveWithKeyboard.call(this);
-            moveWithVirtualJoystick.call(this);
         }
         else {
             moveWithVirtualJoystick.call(this);
@@ -1198,7 +1178,7 @@ var mainState = (function (_super) {
     };
     ;
     mainState.prototype.fire = function () {
-        if (this.time.now > this.game.nextFire) {
+        if (this.time.now > this.game.NEXT_FIRE) {
             var bullet = this.game.bullets.getFirstDead();
             if (bullet) {
                 var length = this.game.player.width * 0.5 + 20;
@@ -1209,7 +1189,7 @@ var mainState = (function (_super) {
                 bullet.angle = this.game.player.angle;
                 var velocity = this.physics.arcade.velocityFromRotation(bullet.rotation, this.game.BULLET_SPEED);
                 bullet.body.velocity.setTo(velocity.x, velocity.y);
-                this.game.nextFire = this.time.now + this.game.FIRE_RATE;
+                this.game.NEXT_FIRE = this.time.now + this.game.FIRE_RATE;
             }
         }
     };
@@ -1241,6 +1221,11 @@ var mainState = (function (_super) {
         this.game.bullets.setAll('checkWorldBounds', true);
     };
     ;
+    mainState.prototype.createPlayer = function () {
+        var oriol = new Player('ORIOL', 50, this.game, this.world.centerX, this.world.centerY, 'player', 0);
+        this.game.player = this.add.existing(oriol);
+    };
+    ;
     mainState.prototype.createMonsters = function () {
         this.game.monsters = this.add.group();
         var factory = new MonsterFactory(this.game);
@@ -1264,26 +1249,7 @@ var mainState = (function (_super) {
     };
     return mainState;
 }(Phaser.State));
-var MonsterFactory = (function () {
-    function MonsterFactory(game) {
-        this.game = game;
-    }
-    MonsterFactory.prototype.createMonster = function (key) {
-        if (key == 'robot') {
-            return new RobotMonster(this.game, key);
-        }
-        if (key == 'zombie1') {
-            return new Zombie1Monster(this.game, key);
-        }
-        if (key == 'zombie2') {
-            return new Zombie2Monster(this.game, key);
-        }
-        else {
-            return null;
-        }
-    };
-    return MonsterFactory;
-}());
+// ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ----------
 var Monster = (function (_super) {
     __extends(Monster, _super);
     function Monster(game, x, y, key, frame) {
@@ -1302,12 +1268,34 @@ var Monster = (function (_super) {
     Monster.prototype.resetMonster = function (monster) { monster.rotation = this.game.physics.arcade.angleBetween(monster, this.game.player); };
     return Monster;
 }(Phaser.Sprite));
+var MonsterFactory //A LA FACTORY DE MONSTRES LI DIREM QUE VOLEM, AIXO SERIA COM LA CLASE PASTISSERIA O MONERIA QUE CREA EN AQUEST CAS MONSTRES DEL TIPUS QUE VOLGUEM
+ = (function () {
+    function MonsterFactory //A LA FACTORY DE MONSTRES LI DIREM QUE VOLEM, AIXO SERIA COM LA CLASE PASTISSERIA O MONERIA QUE CREA EN AQUEST CAS MONSTRES DEL TIPUS QUE VOLGUEM
+        (game) {
+        this.game = game;
+    }
+    MonsterFactory //A LA FACTORY DE MONSTRES LI DIREM QUE VOLEM, AIXO SERIA COM LA CLASE PASTISSERIA O MONERIA QUE CREA EN AQUEST CAS MONSTRES DEL TIPUS QUE VOLGUEM
+    .prototype.createMonster = function (key) {
+        if (key == 'robot') {
+            return new RobotMonster(this.game, key);
+        }
+        if (key == 'zombie1') {
+            return new Zombie1Monster(this.game, key);
+        }
+        if (key == 'zombie2') {
+            return new Zombie2Monster(this.game, key);
+        }
+        else {
+            return null;
+        }
+    };
+    return MonsterFactory //A LA FACTORY DE MONSTRES LI DIREM QUE VOLEM, AIXO SERIA COM LA CLASE PASTISSERIA O MONERIA QUE CREA EN AQUEST CAS MONSTRES DEL TIPUS QUE VOLGUEM
+    ;
+}());
 var RobotMonster = (function (_super) {
     __extends(RobotMonster, _super);
     function RobotMonster(game, key) {
         _super.call(this, game, 100, 100, key, 0);
-        this.MONSTER_HEALTH = 3;
-        this.NAME = "ROBOT";
         this.health = this.MONSTER_HEALTH;
         this.name = this.NAME;
     }
@@ -1317,8 +1305,6 @@ var Zombie1Monster = (function (_super) {
     __extends(Zombie1Monster, _super);
     function Zombie1Monster(game, key) {
         _super.call(this, game, 150, 150, key, 0);
-        this.MONSTER_HEALTH = 1;
-        this.NAME = "Zombie 1";
         this.health = this.MONSTER_HEALTH;
         this.name = this.NAME;
     }
@@ -1328,11 +1314,65 @@ var Zombie2Monster = (function (_super) {
     __extends(Zombie2Monster, _super);
     function Zombie2Monster(game, key) {
         _super.call(this, game, 200, 200, key, 0);
-        this.MONSTER_HEALTH = 2;
-        this.NAME = "Zombie 2";
         this.health = this.MONSTER_HEALTH;
         this.name = this.NAME;
     }
     return Zombie2Monster;
 }(Monster));
+// ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ----------
+var Player = (function (_super) {
+    __extends(Player, _super);
+    function Player(name, startingLives, game, x, y, key, frame) {
+        _super.call(this, game, x, y, key, frame);
+        this.observer = new Achievements();
+        this.game = game;
+        this.NAME = name;
+        this.SCORE = 0;
+        this.anchor.setTo(0.5, 0.5);
+        this.health = startingLives;
+        this.game.physics.enable(this, Phaser.Physics.ARCADE);
+        this.body.maxVelocity.setTo(this.game.PLAYER_MAX_SPEED, this.game.PLAYER_MAX_SPEED);
+        this.body.collideWorldBounds = true;
+        this.body.drag.setTo(this.game.PLAYER_DRAG, this.game.PLAYER_DRAG);
+        this.observer.subscribe(this);
+    }
+    Player.prototype.getScore = function () { return this.SCORE; };
+    Player.prototype.update = function () {
+        _super.prototype.update.call(this);
+        this.observer.notify(this);
+    };
+    return Player;
+}(Phaser.Sprite));
+var Achievements //EL PLAYER ES SUBSCRIU ALS ACHIEVEMENTS PER OBSERVAR SI ELS HA COMPLERT O NO
+ = (function () {
+    function Achievements //EL PLAYER ES SUBSCRIU ALS ACHIEVEMENTS PER OBSERVAR SI ELS HA COMPLERT O NO
+        () {
+        this.PLAYERS = new Array(); //WE WILL BE ABLE TO CREATE 10 PLAYERS AT MAXIMUM
+        this.index = 0;
+        this.ACHIEVEMENT_ONE = 100;
+        this.ACHIEVEMENT_TWO = 200;
+        this.ACHIEVEMENT_THREE = 300;
+    }
+    Achievements //EL PLAYER ES SUBSCRIU ALS ACHIEVEMENTS PER OBSERVAR SI ELS HA COMPLERT O NO
+    .prototype.subscribe = function (player) {
+        this.PLAYERS[this.index] = player;
+        this.index++;
+    };
+    Achievements //EL PLAYER ES SUBSCRIU ALS ACHIEVEMENTS PER OBSERVAR SI ELS HA COMPLERT O NO
+    .prototype.notify = function (player) {
+        for (var x = 0; x < this.PLAYERS.length; x++) {
+            if (this.PLAYERS[x].NAME == player.NAME && player.SCORE == 100) {
+                player.game.achievementsText.setText("YOU ARE NOW LEVEL 2!");
+            }
+            if (this.PLAYERS[x].NAME == player.NAME && player.SCORE == 200) {
+                player.game.achievementsText.setText("YOU ARE NOW LEVEL 3!");
+            }
+            if (this.PLAYERS[x].NAME == player.NAME && player.SCORE == 300) {
+                player.game.achievementsText.setText("YOU ARE NOW LEVEL 4!");
+            }
+        }
+    };
+    return Achievements //EL PLAYER ES SUBSCRIU ALS ACHIEVEMENTS PER OBSERVAR SI ELS HA COMPLERT O NO
+    ;
+}());
 //# sourceMappingURL=main.js.map

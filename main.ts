@@ -3,7 +3,7 @@
 window.onload = () => {new ShooterGame();};
 class ShooterGame extends Phaser.Game
 {
-    player:Phaser.Sprite;
+    player:Player;
     cursors:Phaser.CursorKeys;
     bullets:Phaser.Group;
     tilemap:Phaser.Tilemap;
@@ -14,32 +14,32 @@ class ShooterGame extends Phaser.Game
     scoreText:Phaser.Text;
     livesText:Phaser.Text;
     stateText:Phaser.Text;
+    achievementsText:Phaser.Text;
     gamepad:Gamepads.GamePad;
     
     PLAYER_ACCELERATION = 500;
     PLAYER_MAX_SPEED = 400; // pixels/second
     PLAYER_DRAG = 600;
     MONSTER_SPEED = 200;
-    BULLET_SPEED = 500;
-    FIRE_RATE = 1;
-    LIVES = 100;
+    BULLET_SPEED = 600;
+    FIRE_RATE = 150;
     TEXT_MARGIN = 50;
-    nextFire = 0;
-    score = 0;
+    NEXT_FIRE = 0;
 
     constructor() 
     {
-        super(800, 480, Phaser.CANVAS, 'gameDiv');
+        super(1000, 1000, Phaser.CANVAS, 'gameDiv');
         this.state.add('main', mainState);
         this.state.start('main');
     }
 }
 class mainState extends Phaser.State
 {
-    //OBSERVER PER SCORE
-    //FACTORY O DECORATOR PER MONSTERS
-    //OTRO PARA BULLETS ?
-    //Y TMB PARA EXPLOSIONS SUPONGO
+    //OBSERVER PER SCORE PLAYER I ACHIEVEMENTS ?
+    //FACTORY O DECORATOR PER MONSTERS ?
+    //UN ALTRE PER BULLETS ?
+    //I SUPOSO QUE UN ALTRE PER LES EXPLOSIONS
+
     game:ShooterGame;
     preload():void
     {
@@ -91,35 +91,34 @@ class mainState extends Phaser.State
         }
     }
 
-    private createTexts() {
+    private createTexts() 
+    {
         var width = this.scale.bounds.width;
         var height = this.scale.bounds.height;
 
-        this.game.scoreText = this.add.text(this.game.TEXT_MARGIN, this.game.TEXT_MARGIN, 'Score: ' + this.game.score,
-            {font: "30px Arial", fill: "#ffffff"});
+        this.game.scoreText = this.add.text(this.game.TEXT_MARGIN, this.game.TEXT_MARGIN, 'Score: ' + this.game.player.getScore(), {font: "30px Arial", fill: "#ffffff"});
         this.game.scoreText.fixedToCamera = true;
-        this.game.livesText = this.add.text(width - this.game.TEXT_MARGIN, this.game.TEXT_MARGIN, 'Lives: ' + this.game.player.health,
-            {font: "30px Arial", fill: "#ffffff"});
+        
+        this.game.livesText = this.add.text(width - this.game.TEXT_MARGIN, this.game.TEXT_MARGIN, 'Lives: ' + this.game.player.health, {font: "30px Arial", fill: "#ffffff"});
         this.game.livesText.anchor.setTo(1, 0);
         this.game.livesText.fixedToCamera = true;
 
         this.game.stateText = this.add.text(width / 2, height / 2, '', {font: '84px Arial', fill: '#fff'});
         this.game.stateText.anchor.setTo(0.5, 0.5);
-        this.game.stateText.visible = false;
         this.game.stateText.fixedToCamera = true;
+        
+        this.game.achievementsText = this.add.text(this.world.centerX, 30, "THIS IS THE OBSERVER PATTERN", {font: "30px Arial", fill: "#ffffff"});
+        this.game.achievementsText.anchor.setTo(0.5, 0.5)
+        this.game.achievementsText.fixedToCamera = true;
     };
 
     private createExplosions()
     {
         this.game.explosions = this.add.group();
         this.game.explosions.createMultiple(20, 'explosion');
-
         this.game.explosions.setAll('anchor.x', 0.5);
         this.game.explosions.setAll('anchor.y', 0.5);
-
-        this.game.explosions.forEach((explosion:Phaser.Sprite) => {
-            explosion.loadTexture(this.rnd.pick(['explosion', 'explosion2', 'explosion3']));
-        }, this);
+        this.game.explosions.forEach((explosion:Phaser.Sprite) => {explosion.loadTexture(this.rnd.pick(['explosion', 'explosion2', 'explosion3']));}, this);
     };
 
     private createWalls()
@@ -147,21 +146,9 @@ class mainState extends Phaser.State
     };
     private createVirtualJoystick() {this.game.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK);};
 
-    private setupCamera() {
-        this.camera.follow(this.game.player);
-    };
+    private setupCamera() {this.camera.follow(this.game.player);};
 
-    private createPlayer()
-    {
-        this.game.player = this.add.sprite(this.world.centerX, this.world.centerY, 'player');
-        this.game.player.anchor.setTo(0.5, 0.5);
-        this.game.player.health = this.game.LIVES;
-        this.game.physics.enable(this.game.player, Phaser.Physics.ARCADE);
-        this.game.player.body.maxVelocity.setTo(this.game.PLAYER_MAX_SPEED, this.game.PLAYER_MAX_SPEED); // x, y
-        this.game.player.body.collideWorldBounds = true;
-        this.game.player.body.drag.setTo(this.game.PLAYER_DRAG, this.game.PLAYER_DRAG); // x, y
-    };
-
+   
     update():void
     {
         super.update();
@@ -188,16 +175,10 @@ class mainState extends Phaser.State
         this.blink(player);
         if (player.health == 0) {
             this.game.stateText.text = " GAME OVER \n Click to restart";
-            this.game.stateText.visible = true;
             this.input.onTap.addOnce(this.restart, this);
         }
     }
-    restart()
-    {
-        this.game.player.health = 100;
-        this.game.score=0;
-        this.game.state.restart();
-    }
+    restart() {this.game.state.restart();}
 
     private bulletHitWall(bullet:Phaser.Sprite) {
         this.explosion(bullet.x, bullet.y);
@@ -213,9 +194,10 @@ class mainState extends Phaser.State
 
         if (monster.health > 0) {
             this.blink(monster)
-        } else {
-            this.game.score += 10;
-            this.game.scoreText.setText("Score: " + this.game.score);
+        } else
+        {
+            this.game.player.SCORE += 10;
+            this.game.scoreText.setText("Score: " + this.game.player.getScore());
         }
     }
 
@@ -242,9 +224,9 @@ class mainState extends Phaser.State
         var moveWithKeyboard = function () 
         {
             if (this.game.cursors.left.isDown || this.input.keyboard.isDown(Phaser.Keyboard.A)) {this.game.player.body.acceleration.x = -this.game.PLAYER_ACCELERATION;}
-            if (this.game.cursors.right.isDown || this.input.keyboard.isDown(Phaser.Keyboard.D)) {this.game.player.body.acceleration.x = this.game.PLAYER_ACCELERATION;} 
-            if (this.game.cursors.up.isDown || this.input.keyboard.isDown(Phaser.Keyboard.W)) {this.game.player.body.acceleration.y = -this.game.PLAYER_ACCELERATION;}
-            if (this.game.cursors.down.isDown || this.input.keyboard.isDown(Phaser.Keyboard.S)) {this.game.player.body.acceleration.y = this.game.PLAYER_ACCELERATION;}
+            else if (this.game.cursors.right.isDown || this.input.keyboard.isDown(Phaser.Keyboard.D)) {this.game.player.body.acceleration.x = this.game.PLAYER_ACCELERATION;}
+            else if (this.game.cursors.up.isDown || this.input.keyboard.isDown(Phaser.Keyboard.W)) {this.game.player.body.acceleration.y = -this.game.PLAYER_ACCELERATION;}
+            else if (this.game.cursors.down.isDown || this.input.keyboard.isDown(Phaser.Keyboard.S)) {this.game.player.body.acceleration.y = this.game.PLAYER_ACCELERATION;}
             else 
             {
                 this.game.player.body.acceleration.x = 0;
@@ -255,9 +237,9 @@ class mainState extends Phaser.State
         var moveWithVirtualJoystick = function () 
         {
             if (this.game.gamepad.stick1.cursors.left) {this.game.player.body.acceleration.x = -this.game.PLAYER_ACCELERATION;}
-            if (this.game.gamepad.stick1.cursors.right) {this.game.player.body.acceleration.x = this.game.PLAYER_ACCELERATION;}
-            if (this.game.gamepad.stick1.cursors.up) {this.game.player.body.acceleration.y = -this.game.PLAYER_ACCELERATION;}
-            if (this.game.gamepad.stick1.cursors.down) {this.game.player.body.acceleration.y = this.game.PLAYER_ACCELERATION;}
+            else if (this.game.gamepad.stick1.cursors.right) {this.game.player.body.acceleration.x = this.game.PLAYER_ACCELERATION;}
+            else if (this.game.gamepad.stick1.cursors.up) {this.game.player.body.acceleration.y = -this.game.PLAYER_ACCELERATION;}
+            else if (this.game.gamepad.stick1.cursors.down) {this.game.player.body.acceleration.y = this.game.PLAYER_ACCELERATION;}
             else 
             {
                 this.game.player.body.acceleration.x = 0;
@@ -267,13 +249,12 @@ class mainState extends Phaser.State
         if (this.game.device.desktop) 
         {
             moveWithKeyboard.call(this);
-            moveWithVirtualJoystick.call(this);
         }
         else {moveWithVirtualJoystick.call(this);}
     };
 
     fire():void {
-        if (this.time.now > this.game.nextFire) {
+        if (this.time.now > this.game.NEXT_FIRE) {
             var bullet = this.game.bullets.getFirstDead();
             if (bullet) {
                 var length = this.game.player.width * 0.5 + 20;
@@ -290,7 +271,7 @@ class mainState extends Phaser.State
 
                 bullet.body.velocity.setTo(velocity.x, velocity.y);
 
-                this.game.nextFire = this.time.now + this.game.FIRE_RATE;
+                this.game.NEXT_FIRE = this.time.now + this.game.FIRE_RATE;
             }
         }
     }
@@ -329,6 +310,13 @@ class mainState extends Phaser.State
         this.game.bullets.setAll('outOfBoundsKill', true);
         this.game.bullets.setAll('checkWorldBounds', true);
     };
+
+    private createPlayer()
+    {
+        var oriol = new Player('ORIOL', 50, this.game, this.world.centerX, this.world.centerY, 'player', 0);
+        this.game.player = this.add.existing(oriol);
+    };
+
     private createMonsters()
     {
         this.game.monsters = this.add.group();
@@ -350,20 +338,13 @@ class mainState extends Phaser.State
     }
 }
 
-class MonsterFactory
+
+// ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ----------
+class Monster extends Phaser.Sprite
 {
     game:ShooterGame;
-    constructor(game:ShooterGame) {this.game = game;}
-    createMonster(key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture):Monster
-    {
-        if (key == 'robot'){return new RobotMonster(this.game, key);}
-        if (key =='zombie1'){return new Zombie1Monster(this.game, key);}
-        if (key =='zombie2'){return new Zombie2Monster(this.game, key);}
-        else{return null;}
-    }
-}
-class Monster extends Phaser.Sprite {
-    game:ShooterGame;
+    MONSTER_HEALTH; //AQUESTES DUES VARIABLES LES TENEN TOTS ELS MONSTRES PERO VARIARAN SEGONS QUIN MONSTRE CREEM, IGUAL QUE AMB LES MONES DE CIUTAT O POBLE, AMB DIFERENTS INGREDIENTS
+    NAME:string;
     constructor(game:ShooterGame, x:number, y:number, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture, frame:string|number)
     {
         super(game, x, y, key, frame);
@@ -380,12 +361,20 @@ class Monster extends Phaser.Sprite {
     }
     resetMonster(monster:Phaser.Sprite) {monster.rotation = this.game.physics.arcade.angleBetween(monster, this.game.player);}
 }
-   
-
+class MonsterFactory //A LA FACTORY DE MONSTRES LI DIREM QUE VOLEM, AIXO SERIA COM LA CLASE PASTISSERIA O MONERIA QUE CREA EN AQUEST CAS MONSTRES DEL TIPUS QUE VOLGUEM
+{
+    game:ShooterGame;
+    constructor(game:ShooterGame) {this.game = game;}
+    createMonster(key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture):Monster
+    {
+        if (key == 'robot'){return new RobotMonster(this.game, key);}
+        if (key =='zombie1'){return new Zombie1Monster(this.game, key);}
+        if (key =='zombie2'){return new Zombie2Monster(this.game, key);}
+        else{return null;}
+    }
+}
 class RobotMonster extends Monster
 {
-    MONSTER_HEALTH = 3;
-    NAME = "ROBOT";
     constructor(game:ShooterGame, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
     {
         super(game, 100, 100, key, 0);
@@ -395,8 +384,6 @@ class RobotMonster extends Monster
 }
 class Zombie1Monster extends Monster
 {
-    MONSTER_HEALTH = 1;
-    NAME = "Zombie 1";
     constructor(game:ShooterGame, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
     {
         super(game, 150, 150,key, 0);
@@ -406,12 +393,62 @@ class Zombie1Monster extends Monster
 }
 class Zombie2Monster extends Monster
 {
-    MONSTER_HEALTH = 2;
-    NAME = "Zombie 2";
     constructor(game:ShooterGame, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
     {
         super(game, 200, 200,key, 0);
         this.health = this.MONSTER_HEALTH;
         this.name = this.NAME;
+    }
+}
+
+// ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ----------
+class Player extends Phaser.Sprite
+{
+    game:ShooterGame;
+    observer:Achievements = new Achievements();
+    SCORE:number;
+    NAME:string;
+    constructor(name:string, startingLives:number, game:ShooterGame, x:number, y:number, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture, frame:string|number)
+    {
+        super(game, x, y, key, frame);
+        this.game = game;
+        this.NAME = name;
+        this.SCORE = 0;
+        this.anchor.setTo(0.5, 0.5);
+        this.health = startingLives;
+        this.game.physics.enable(this, Phaser.Physics.ARCADE);
+        this.body.maxVelocity.setTo(this.game.PLAYER_MAX_SPEED, this.game.PLAYER_MAX_SPEED);
+        this.body.collideWorldBounds = true;
+        this.body.drag.setTo(this.game.PLAYER_DRAG, this.game.PLAYER_DRAG);
+        this.observer.subscribe(this);
+    }
+    getScore():number{return this.SCORE;}
+    update():void
+    {
+        super.update();
+        this.observer.notify(this);
+    }
+}
+class Achievements //EL PLAYER ES SUBSCRIU ALS ACHIEVEMENTS PER OBSERVAR SI ELS HA COMPLERT O NO
+{
+    PLAYERS:Array<Player> = new Array<Player>(); //WE WILL BE ABLE TO CREATE 10 PLAYERS AT MAXIMUM
+    index:number = 0;
+    ACHIEVEMENT_ONE:number = 100;
+    ACHIEVEMENT_TWO:number = 200;
+    ACHIEVEMENT_THREE:number = 300;
+    constructor(){}
+    subscribe(player:Player)
+    {
+        this.PLAYERS[this.index] = player;
+        this.index++;
+    }
+    notify(player:Player):void
+    {
+        for (var x=0; x<this.PLAYERS.length; x++)
+        {
+            if (this.PLAYERS[x].NAME == player.NAME && player.SCORE == 100) { player.game.achievementsText.setText("YOU ARE NOW LEVEL 2!");}
+            if (this.PLAYERS[x].NAME == player.NAME && player.SCORE == 200) { player.game.achievementsText.setText("YOU ARE NOW LEVEL 3!");}
+            if (this.PLAYERS[x].NAME == player.NAME && player.SCORE == 300) { player.game.achievementsText.setText("YOU ARE NOW LEVEL 4!");}
+        }
     }
 }
