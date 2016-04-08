@@ -1246,7 +1246,7 @@ var mainState = (function (_super) {
 }(Phaser.State));
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
-// ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- NOT FINISHED
 var Bullet = (function (_super) {
     __extends(Bullet, _super);
     function Bullet(game, key) {
@@ -1271,13 +1271,16 @@ var Explosion = (function (_super) {
 }(Phaser.Sprite));
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
-// ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
-var Ability = (function () {
-    function Ability(ability) {
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- FINISHED
+var Ability //CLASE PRINCIPAL QUE NOMES CONTE LA DESCRIPCIO DE LA HABILITAT
+ = (function () {
+    function Ability //CLASE PRINCIPAL QUE NOMES CONTE LA DESCRIPCIO DE LA HABILITAT
+        (ability) {
         this.ABILITY = "None";
         this.ABILITY = ability;
     }
-    return Ability;
+    return Ability //CLASE PRINCIPAL QUE NOMES CONTE LA DESCRIPCIO DE LA HABILITAT
+    ;
 }());
 var Teleport = (function (_super) {
     __extends(Teleport, _super);
@@ -1285,7 +1288,7 @@ var Teleport = (function (_super) {
         _super.call(this, "Teleport");
     }
     return Teleport;
-}(Ability));
+}(Ability)); //CADASCUNA DE LES ABILITATS QUE LI PODREM AFEGIR A CADA MONSTER
 var Fly = (function (_super) {
     __extends(Fly, _super);
     function Fly() {
@@ -1302,7 +1305,7 @@ var Run = (function (_super) {
 }(Ability));
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
-// ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- FINISHED
 var Monster = (function (_super) {
     __extends(Monster, _super);
     function Monster(game, x, y, key, frame) {
@@ -1397,7 +1400,7 @@ var Zombie2Monster = (function (_super) {
 }(Monster));
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
-// ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- FINISHED
 var Player = (function (_super) {
     __extends(Player, _super);
     function Player(name, startingLives, game, x, y, key, frame) {

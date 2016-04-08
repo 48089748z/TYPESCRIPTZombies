@@ -301,7 +301,6 @@ class mainState extends Phaser.State
             this.game.bullets.add(bullet);
         }
     };
-
     addMonster(monster:Monster) {this.game.add.existing(monster); this.game.monsters.add(monster);}
     createPlayer() {var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0); this.game.player = this.add.existing(oriol);};
     restart() {this.game.state.restart();}
@@ -333,8 +332,8 @@ class mainState extends Phaser.State
 }
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
-// ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
-class Bullet extends Phaser.Sprite
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- NOT FINISHED
+class Bullet extends Phaser.Sprite 
 {
 
     constructor(game:ShooterGame, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
@@ -359,8 +358,8 @@ class Explosion extends Phaser.Sprite
 }
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
-// ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
-class Ability
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- FINISHED
+class Ability //CLASE PRINCIPAL QUE NOMES CONTE LA DESCRIPCIO DE LA HABILITAT
 {
     ABILITY:string = "None";
     constructor(ability:string)
@@ -368,13 +367,13 @@ class Ability
         this.ABILITY = ability;
     }
 }
-class Teleport extends Ability {constructor() {super("Teleport")}}
+class Teleport extends Ability {constructor() {super("Teleport")}} //CADASCUNA DE LES ABILITATS QUE LI PODREM AFEGIR A CADA MONSTER
 class Fly extends Ability {constructor() {super("Fly");}}
 class Run extends Ability {constructor() {super("Run");}}
 
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
-// ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- FINISHED
 class Monster extends Phaser.Sprite //MONSTER PER DEFECTE TINDRA TOT EL QUE TINDRIA CUALSEVOL MONSTER, DE CUALSEVOL TIPUS
 {
     index:number = 0 ;
@@ -467,7 +466,7 @@ class Zombie2Monster extends Monster
 
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
-// ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- FINISHED
 class Player extends Phaser.Sprite
 {
     game:ShooterGame;
