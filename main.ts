@@ -115,10 +115,12 @@ class mainState extends Phaser.State
     private createExplosions()
     {
         this.game.explosions = this.add.group();
-        this.game.explosions.createMultiple(20, 'explosion');
-        this.game.explosions.setAll('anchor.x', 0.5);
-        this.game.explosions.setAll('anchor.y', 0.5);
-        this.game.explosions.forEach((explosion:Phaser.Sprite) => {explosion.loadTexture(this.rnd.pick(['explosion', 'explosion2', 'explosion3']));}, this);
+        for (var x=0; x<15; x++) //CREAREM 15 EXPLOSIONS
+        {
+            var explosion = new Explosion(this.game, 'explosion');
+            this.game.explosions.add(explosion);
+        }
+        this.game.explosions.forEach((explosion:Explosion) => {explosion.loadTexture(this.rnd.pick(['explosion', 'explosion2', 'explosion3']));}, this);
     };
 
     private createWalls()
@@ -166,7 +168,7 @@ class mainState extends Phaser.State
     }
 
     
-    private monsterTouchesPlayer(player:Phaser.Sprite, monster:Phaser.Sprite) {
+    private monsterTouchesPlayer(player:Player, monster:Monster) {
         monster.kill();
         player.damage(1);
         this.game.livesText.setText("Lives: " + this.game.player.health);
@@ -180,7 +182,7 @@ class mainState extends Phaser.State
 
 
 
-    private bulletHitMonster(bullet:Phaser.Sprite, monster:Phaser.Sprite) {
+    private bulletHitMonster(bullet:Bullet, monster:Monster) {
         bullet.kill();
         monster.damage(1);
         this.explosion(bullet.x, bullet.y);
@@ -204,7 +206,7 @@ class mainState extends Phaser.State
     }
 
     private moveMonsters() {this.game.monsters.forEach(this.advanceStraightAhead, this)};
-    private advanceStraightAhead(monster:Phaser.Sprite) {this.physics.arcade.velocityFromAngle(monster.angle, this.game.MONSTER_SPEED, monster.body.velocity);}
+    private advanceStraightAhead(monster:Monster) {this.physics.arcade.velocityFromAngle(monster.angle, monster.SPEED, monster.body.velocity);}
     private fireWhenButtonClicked() {if (this.input.activePointer.isDown) {this.fire();}};
 
     private rotatePlayerToPointer()
@@ -271,7 +273,7 @@ class mainState extends Phaser.State
 
     explosion(x:number, y:number):void
     {
-        var explosion:Phaser.Sprite = this.game.explosions.getFirstDead();
+        var explosion:Explosion = this.game.explosions.getFirstDead();
         if (explosion)
         {
             explosion.reset(x - this.rnd.integerInRange(0, 5) + this.rnd.integerInRange(0, 5), y - this.rnd.integerInRange(0, 5) + this.rnd.integerInRange(0, 5));
@@ -293,21 +295,18 @@ class mainState extends Phaser.State
         this.game.bullets = this.add.group();
         this.game.bullets.enableBody = true;
         this.game.bullets.physicsBodyType = Phaser.Physics.ARCADE;
-        this.game.bullets.createMultiple(20, 'bullet');
-
-        this.game.bullets.setAll('anchor.x', 0.5);
-        this.game.bullets.setAll('anchor.y', 0.5);
-        this.game.bullets.setAll('scale.x', 0.5);
-        this.game.bullets.setAll('scale.y', 0.5);
-        this.game.bullets.setAll('outOfBoundsKill', true);
-        this.game.bullets.setAll('checkWorldBounds', true);
+        for (var x=0; x<25; x++) //CREAREM 20 BULLETS
+        {
+            var bullet = new Bullet(this.game, 'bullet');
+            this.game.bullets.add(bullet);
+        }
     };
 
     addMonster(monster:Monster) {this.game.add.existing(monster); this.game.monsters.add(monster);}
     createPlayer() {var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0); this.game.player = this.add.existing(oriol);};
     restart() {this.game.state.restart();}
-    resetMonster(monster:Phaser.Sprite) {monster.rotation = this.physics.arcade.angleBetween(monster, this.game.player);}
-    bulletHitWall(bullet:Phaser.Sprite) {this.explosion(bullet.x, bullet.y);bullet.kill();}
+    resetMonster(monster:Monster) {monster.rotation = this.physics.arcade.angleBetween(monster, this.game.player);}
+    bulletHitWall(bullet:Bullet) {this.explosion(bullet.x, bullet.y);bullet.kill();}
     createVirtualJoystick() {this.game.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK);};
     setupCamera() {this.camera.follow(this.game.player);};
     private createMonsters()
@@ -325,45 +324,65 @@ class mainState extends Phaser.State
         for (var x=0; x<23; x++) {this.addMonster(factory.createMonster('zombie2'));}
         var monsterWithAbility = factory.createMonster('robot');
 
-        monsterWithAbility.setAbility(new Teletransport());
+        //AFEGIM ABILITATS A UN NOU MONSTER PER DEMOSTRAR QUE EL DECORATOR FUNCIONA CORRECTAMENT
+        monsterWithAbility.setAbility(new Teleport());
         monsterWithAbility.setAbility(new Fly());
+        monsterWithAbility.setAbility(new Run());
         this.addMonster(monsterWithAbility);
     };
+}
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
+class Bullet extends Phaser.Sprite
+{
+
+    constructor(game:ShooterGame, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
+    {
+        super(game, 0, 0, key, 0);
+        this.anchor.setTo(0.5, 0.5);
+        this.scale.setTo(0.5, 0.5);
+        this.checkWorldBounds = true;
+        this.events.onOutOfBounds.add(this.killBullet, this);
+        this.kill();
+    }
+    killBullet(bullet:Bullet) {bullet.kill();}
+}
+class Explosion extends Phaser.Sprite
+{
+    constructor(game:ShooterGame, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
+    {
+        super(game, 0, 0, key, 0);
+        this.anchor.set(0.5, 0.5);
+        this.kill();
+    }
 }
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
-abstract class Ability
+class Ability
 {
-    public ABILITY:string = "None";
+    ABILITY:string = "None";
     constructor(ability:string)
     {
         this.ABILITY = ability;
     }
 }
-class Teletransport extends Ability {
-    constructor() {
-        super("Teletransport")
-    }
-}
-
-class Fly extends Ability
-{
-    constructor() {
-        super("Fly");
-    }
-}
+class Teleport extends Ability {constructor() {super("Teleport")}}
+class Fly extends Ability {constructor() {super("Fly");}}
+class Run extends Ability {constructor() {super("Run");}}
 
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 class Monster extends Phaser.Sprite //MONSTER PER DEFECTE TINDRA TOT EL QUE TINDRIA CUALSEVOL MONSTER, DE CUALSEVOL TIPUS
 {
-    index:number=0;
+    index:number = 0 ;
     ABILITIES:Array<Ability> = new Array<Ability>(); //AQUEST ARRAY ES PER EL DECORATOR
     game:ShooterGame;
     MONSTER_HEALTH = 0; //AQUESTES DUES VARIABLES LES TENEN TOTS ELS MONSTRES PERO VARIARAN SEGONS QUIN MONSTRE CREEM, IGUAL QUE AMB LES MONES DE CIUTAT O POBLE, AMB DIFERENTS INGREDIENTS
     NAME:string;
+    SPEED:number;
     constructor(game:ShooterGame, x:number, y:number, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture, frame:string|number)
     {
         super(game, x, y, key, frame);
@@ -378,12 +397,13 @@ class Monster extends Phaser.Sprite //MONSTER PER DEFECTE TINDRA TOT EL QUE TIND
     {
         super.update();
         this.events.onOutOfBounds.add(this.resetMonster, this);
-        var toPrint = this.NAME+"ABILITIES:  ";
+        var toPrint = this.NAME+" ABILITIES:  ";
         for (var x=0; x<this.ABILITIES.length; x++)
         {
             toPrint = toPrint + this.ABILITIES[x].ABILITY;
+            //this.game.scoreText.setText(toPrint);  //Uncomment this to check that it works.
         }
-        this.game.scoreText.setText(toPrint);
+       
     }
     setAbility(ability:Ability)
     {
@@ -410,9 +430,9 @@ class RobotMonster extends Monster //ELS MONSTERS ESPECIFICS TINDRAN DIFERENT NO
     {
         super(game, 100, 100, key, 0);
         this.health = 5;
-        this.NAME = "ROBOT ";
+        this.NAME = "ROBOT";
+        this.SPEED = 200;
     }
-
     update():void {
         super.update();
     }
@@ -423,7 +443,8 @@ class Zombie1Monster extends Monster
     {
         super(game, 150, 150,key, 0);
         this.health=2;
-        this.NAME="Zombie 1 ";
+        this.NAME="Zombie 1";
+        this.SPEED = 300;
     }
 
     update():void {
@@ -436,7 +457,8 @@ class Zombie2Monster extends Monster
     {
         super(game, 200, 200,key, 0);
         this.health = 3;
-        this.NAME="Zombie 2 ";
+        this.NAME="Zombie 2";
+        this.SPEED = 250;
     }
     update():void {
         super.update();
