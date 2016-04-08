@@ -171,8 +171,9 @@ class mainState extends Phaser.State
         player.damage(1);
         this.game.livesText.setText("Lives: " + this.game.player.health);
         this.blink(player);
-        if (player.health == 0) {
-            this.game.stateText.text = " GAME OVER \n Click to restart";
+        if (player.health == 0)
+        {
+            this.game.stateText.text = " GAME OVER \n Click to restart"
             this.input.onTap.addOnce(this.restart, this);
         }
     }
@@ -322,16 +323,44 @@ class mainState extends Phaser.State
 
         //CREAREM 23 Zombies tipus 2 i els afegirem al joc
         for (var x=0; x<23; x++) {this.addMonster(factory.createMonster('zombie2'));}
+        var monsterWithAbility = factory.createMonster('robot');
+
+        monsterWithAbility.setAbility(new Teletransport());
+        monsterWithAbility.setAbility(new Fly());
+        this.addMonster(monsterWithAbility);
     };
 }
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
+abstract class Ability
+{
+    public ABILITY:string = "None";
+    constructor(ability:string)
+    {
+        this.ABILITY = ability;
+    }
+}
+class Teletransport extends Ability {
+    constructor() {
+        super("Teletransport")
+    }
+}
 
+class Fly extends Ability
+{
+    constructor() {
+        super("Fly");
+    }
+}
 
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
-
 class Monster extends Phaser.Sprite //MONSTER PER DEFECTE TINDRA TOT EL QUE TINDRIA CUALSEVOL MONSTER, DE CUALSEVOL TIPUS
 {
+    index:number=0;
+    ABILITIES:Array<Ability> = new Array<Ability>(); //AQUEST ARRAY ES PER EL DECORATOR
     game:ShooterGame;
     MONSTER_HEALTH = 0; //AQUESTES DUES VARIABLES LES TENEN TOTS ELS MONSTRES PERO VARIARAN SEGONS QUIN MONSTRE CREEM, IGUAL QUE AMB LES MONES DE CIUTAT O POBLE, AMB DIFERENTS INGREDIENTS
     NAME:string;
@@ -349,6 +378,17 @@ class Monster extends Phaser.Sprite //MONSTER PER DEFECTE TINDRA TOT EL QUE TIND
     {
         super.update();
         this.events.onOutOfBounds.add(this.resetMonster, this);
+        var toPrint = this.NAME+"ABILITIES:  ";
+        for (var x=0; x<this.ABILITIES.length; x++)
+        {
+            toPrint = toPrint + this.ABILITIES[x].ABILITY;
+        }
+        this.game.scoreText.setText(toPrint);
+    }
+    setAbility(ability:Ability)
+    {
+        this.ABILITIES[this.index] = ability;
+        this.index++;
     }
     resetMonster(monster:Phaser.Sprite) {monster.rotation = this.game.physics.arcade.angleBetween(monster, this.game.player);}
 }
@@ -370,7 +410,11 @@ class RobotMonster extends Monster //ELS MONSTERS ESPECIFICS TINDRAN DIFERENT NO
     {
         super(game, 100, 100, key, 0);
         this.health = 5;
-        this.name = this.NAME;
+        this.NAME = "ROBOT ";
+    }
+
+    update():void {
+        super.update();
     }
 }
 class Zombie1Monster extends Monster
@@ -379,7 +423,11 @@ class Zombie1Monster extends Monster
     {
         super(game, 150, 150,key, 0);
         this.health=2;
-        this.name = this.NAME;
+        this.NAME="Zombie 1 ";
+    }
+
+    update():void {
+        super.update();
     }
 }
 class Zombie2Monster extends Monster
@@ -388,14 +436,16 @@ class Zombie2Monster extends Monster
     {
         super(game, 200, 200,key, 0);
         this.health = 3;
-        this.name = this.NAME;
+        this.NAME="Zombie 2 ";
+    }
+    update():void {
+        super.update();
     }
 }
 
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
-
 class Player extends Phaser.Sprite
 {
     game:ShooterGame;
