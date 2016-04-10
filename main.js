@@ -1187,20 +1187,16 @@ var mainState = (function (_super) {
     mainState.prototype.createMonsters = function () {
         this.game.monsters = this.add.group();
         var factory = new MonsterFactory(this.game);
-        //CREAREM 10 Robots i els afegirem al joc
         for (var x = 0; x < 10; x++) {
             this.addMonster(factory.createMonster('robot'));
-        }
-        //CREAREM 15 Zombies tipus 1 i els afegirem al joc
+        } //CREAREM 10 ROBOTS CRIDANT A LA FACTORY I DIENTLI EL TIPUS QUE VOLEM
         for (var x = 0; x < 15; x++) {
             this.addMonster(factory.createMonster('zombie1'));
-        }
-        //CREAREM 23 Zombies tipus 2 i els afegirem al joc
+        } //CREAREM 10 ZOMBIES TIPUS 1 CRIDANT A LA FACTORY I DIENTLI EL TIPUS QUE VOLEM
         for (var x = 0; x < 23; x++) {
             this.addMonster(factory.createMonster('zombie2'));
-        }
-        var monsterWithAbility = factory.createMonster('robot');
-        //AFEGIM ABILITATS A UN NOU MONSTER PER DEMOSTRAR QUE EL DECORATOR FUNCIONA CORRECTAMENT
+        } //CREAREM 10 ZOMBIES TIPUS 2 CRIDANT A LA FACTORY I DIENTLI EL TIPUS QUE VOLEM
+        var monsterWithAbility = factory.createMonster('robot'); //CREAREM UN ULTIM MONSTER AMB HABILITATS PER COMPROVAR QUE EL DECORATOR FUNCIONA CORRECTAMENT
         monsterWithAbility.setAbility(new Teleport());
         monsterWithAbility.setAbility(new Fly());
         monsterWithAbility.setAbility(new Run());
@@ -1211,18 +1207,18 @@ var mainState = (function (_super) {
         this.game.bullets = this.add.group();
         this.game.bullets.enableBody = true;
         this.game.bullets.physicsBodyType = Phaser.Physics.ARCADE;
-        for (var x = 0; x < 15; x++) {
+        for (var x = 0; x < 20; x++) {
             var bullet = new Bullet(this.game, 'bullet');
-            bullet.setExplosionable(new RedExplosion(this.game)); //AL CREAR LES BALES LI PODEM DIR FACILMENT QUIN TIPUS DEXPLOSIO TINDRAN O SI NO VOLEM QUE EN TINGUIN
+            bullet.setExplosionable(new RedExplosion(this.game)); //5 BALES AMB RED EXPLOSIÓ
             this.game.bullets.add(bullet);
             bullet = new Bullet(this.game, 'bullet');
-            bullet.setExplosionable(new SmokeExplosion(this.game));
+            bullet.setExplosionable(new SmokeExplosion(this.game)); //5 BALES AMB SMOKE EXPLOSIÓ
             this.game.bullets.add(bullet);
             bullet = new Bullet(this.game, 'bullet');
-            bullet.setExplosionable(new YellowExplosion(this.game));
+            bullet.setExplosionable(new YellowExplosion(this.game)); //5 BALES AMB YELLOW EXPLOSIÓ
             this.game.bullets.add(bullet);
             bullet = new Bullet(this.game, 'bullet');
-            bullet.setExplosionable(new NoExplosion(this.game));
+            bullet.setExplosionable(new NoExplosion(this.game)); //5 BALES SENSE EXPLOSIÓ
             this.game.bullets.add(bullet);
         }
     };
@@ -1234,8 +1230,6 @@ var mainState = (function (_super) {
     mainState.prototype.rotatePlayerToPointer = function () { this.game.player.rotation = this.physics.arcade.angleToPointer(this.game.player, this.input.activePointer); };
     ;
     mainState.prototype.addMonster = function (monster) { this.game.add.existing(monster); this.game.monsters.add(monster); };
-    mainState.prototype.createPlayer = function () { var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0); this.game.player = this.add.existing(oriol); };
-    ;
     mainState.prototype.restart = function () { this.game.state.restart(); };
     mainState.prototype.resetMonster = function (monster) { monster.rotation = this.physics.arcade.angleBetween(monster, this.game.player); };
     mainState.prototype.createVirtualJoystick = function () { this.game.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK); };
@@ -1243,12 +1237,16 @@ var mainState = (function (_super) {
     mainState.prototype.setupCamera = function () { this.camera.follow(this.game.player); };
     ;
     mainState.prototype.bulletHitWall = function (bullet) { this.explosion(bullet.x, bullet.y, bullet.explosionable); bullet.kill(); };
-    mainState.prototype.explosion = function (x, y, explosionable) { explosionable.checkExplosionType(x, y); };
+    mainState.prototype.explosion = function (x, y, explosionable) { explosionable.checkExplosionType(x, y); }; //METODE QUE CRIDARA A LA INTERFICIE DE CADA BULLET PER VEURE QUINA EXPLOSIO TE
+    mainState.prototype.createPlayer = function () { var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0); this.game.player = this.add.existing(oriol); };
+    ;
     return mainState;
 }(Phaser.State));
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
-// ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- NOT FINISHED
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- FINISHED
 var Bullet = (function (_super) {
     __extends(Bullet, _super);
     function Bullet(game, key) {
@@ -1322,6 +1320,8 @@ var YellowExplosion = (function (_super) {
 }(Phaser.Sprite));
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- FINISHED
 var Ability //CLASE PRINCIPAL QUE NOMES CONTE LA DESCRIPCIO DE LA HABILITAT
  = (function () {
@@ -1354,6 +1354,8 @@ var Run = (function (_super) {
     }
     return Run;
 }(Ability));
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- FINISHED
@@ -1419,9 +1421,7 @@ var RobotMonster = (function (_super) {
         this.NAME = "ROBOT";
         this.SPEED = 200;
     }
-    RobotMonster.prototype.update = function () {
-        _super.prototype.update.call(this);
-    };
+    RobotMonster.prototype.update = function () { _super.prototype.update.call(this); };
     return RobotMonster;
 }(Monster));
 var Zombie1Monster = (function (_super) {
@@ -1432,9 +1432,7 @@ var Zombie1Monster = (function (_super) {
         this.NAME = "Zombie 1";
         this.SPEED = 300;
     }
-    Zombie1Monster.prototype.update = function () {
-        _super.prototype.update.call(this);
-    };
+    Zombie1Monster.prototype.update = function () { _super.prototype.update.call(this); };
     return Zombie1Monster;
 }(Monster));
 var Zombie2Monster = (function (_super) {
@@ -1445,11 +1443,11 @@ var Zombie2Monster = (function (_super) {
         this.NAME = "Zombie 2";
         this.SPEED = 250;
     }
-    Zombie2Monster.prototype.update = function () {
-        _super.prototype.update.call(this);
-    };
+    Zombie2Monster.prototype.update = function () { _super.prototype.update.call(this); };
     return Zombie2Monster;
 }(Monster));
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- FINISHED
@@ -1522,7 +1520,7 @@ var Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLE
     Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLERT ACHIEVEMENTS O NO
     .prototype.generateRandomAchievements = function () { for (var x = 0; x < 5; x++) {
         this.ACHIEVEMENTS[x] = new Achievement(x * 100, "YOU HAVE REACHED LEVEL " + x + "!");
-    } return true; };
+    } return true; }; //METODE PER GENERAR ACHIEVEMENTS 
     return Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLERT ACHIEVEMENTS O NO
     ;
 }());

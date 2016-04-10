@@ -200,7 +200,6 @@ class mainState extends Phaser.State
             this.input.onTap.addOnce(this.restart, this);
         }
     }
-    
     private bulletHitMonster(bullet:Bullet, monster:Monster) 
     {
         bullet.kill();
@@ -243,22 +242,15 @@ class mainState extends Phaser.State
             }
         }
     }
+    
     private createMonsters()
     {
         this.game.monsters = this.add.group();
         var factory = new MonsterFactory(this.game);
-
-        //CREAREM 10 Robots i els afegirem al joc
-        for (var x=0; x<10; x++) {this.addMonster(factory.createMonster('robot'));}
-
-        //CREAREM 15 Zombies tipus 1 i els afegirem al joc
-        for (var x=0; x<15; x++) {this.addMonster(factory.createMonster('zombie1'));}
-
-        //CREAREM 23 Zombies tipus 2 i els afegirem al joc
-        for (var x=0; x<23; x++) {this.addMonster(factory.createMonster('zombie2'));}
-        var monsterWithAbility = factory.createMonster('robot');
-
-        //AFEGIM ABILITATS A UN NOU MONSTER PER DEMOSTRAR QUE EL DECORATOR FUNCIONA CORRECTAMENT
+        for (var x=0; x<10; x++) {this.addMonster(factory.createMonster('robot'));} //CREAREM 10 ROBOTS CRIDANT A LA FACTORY I DIENTLI EL TIPUS QUE VOLEM
+        for (var x=0; x<15; x++) {this.addMonster(factory.createMonster('zombie1'));} //CREAREM 10 ZOMBIES TIPUS 1 CRIDANT A LA FACTORY I DIENTLI EL TIPUS QUE VOLEM
+        for (var x=0; x<23; x++) {this.addMonster(factory.createMonster('zombie2'));}  //CREAREM 10 ZOMBIES TIPUS 2 CRIDANT A LA FACTORY I DIENTLI EL TIPUS QUE VOLEM
+        var monsterWithAbility = factory.createMonster('robot'); //CREAREM UN ULTIM MONSTER AMB HABILITATS PER COMPROVAR QUE EL DECORATOR FUNCIONA CORRECTAMENT
         monsterWithAbility.setAbility(new Teleport());
         monsterWithAbility.setAbility(new Fly());
         monsterWithAbility.setAbility(new Run());
@@ -269,40 +261,42 @@ class mainState extends Phaser.State
         this.game.bullets = this.add.group();
         this.game.bullets.enableBody = true;
         this.game.bullets.physicsBodyType = Phaser.Physics.ARCADE;
-        for (var x=0; x<15; x++) //CREAREM 5 EXPLOSIONS DE CADA TIPUS PER QUE ES VEGI AL JOC QUE FUNCIONA
+        for (var x=0; x<20; x++) //CREAREM 5 EXPLOSIONS DE CADA TIPUS PER QUE ES VEGI AL JOC QUE FUNCIONA AL CREAR LES BALES LI PODEM DIR FACILMENT QUIN TIPUS DEXPLOSIO TINDRAN O SI NO VOLEM QUE EN TINGUIN
         {
             var bullet = new Bullet(this.game, 'bullet');
-            bullet.setExplosionable(new RedExplosion(this.game)); //AL CREAR LES BALES LI PODEM DIR FACILMENT QUIN TIPUS DEXPLOSIO TINDRAN O SI NO VOLEM QUE EN TINGUIN
+            bullet.setExplosionable(new RedExplosion(this.game)); //5 BALES AMB RED EXPLOSIÓ
             this.game.bullets.add(bullet);
 
             bullet = new Bullet(this.game, 'bullet');
-            bullet.setExplosionable(new SmokeExplosion(this.game));
+            bullet.setExplosionable(new SmokeExplosion(this.game)); //5 BALES AMB SMOKE EXPLOSIÓ
             this.game.bullets.add(bullet);
 
             bullet = new Bullet(this.game, 'bullet');
-            bullet.setExplosionable(new YellowExplosion(this.game));
+            bullet.setExplosionable(new YellowExplosion(this.game)); //5 BALES AMB YELLOW EXPLOSIÓ
             this.game.bullets.add(bullet);
 
             bullet = new Bullet(this.game, 'bullet');
-            bullet.setExplosionable(new NoExplosion(this.game));
+            bullet.setExplosionable(new NoExplosion(this.game)); //5 BALES SENSE EXPLOSIÓ
             this.game.bullets.add(bullet);
         }
     };
     fireWhenButtonClicked() {if (this.input.activePointer.isDown) {this.fire();}};
     rotatePlayerToPointer() {this.game.player.rotation = this.physics.arcade.angleToPointer(this.game.player, this.input.activePointer);};
     addMonster(monster:Monster) {this.game.add.existing(monster); this.game.monsters.add(monster);}
-    createPlayer() {var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0); this.game.player = this.add.existing(oriol);};
     restart() {this.game.state.restart();}
     resetMonster(monster:Monster) {monster.rotation = this.physics.arcade.angleBetween(monster, this.game.player);}
     createVirtualJoystick() {this.game.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK);};
     setupCamera() {this.camera.follow(this.game.player);};
     bulletHitWall(bullet:Bullet) {this.explosion(bullet.x, bullet.y, bullet.explosionable); bullet.kill();}
-    explosion(x:number, y:number, explosionable:Explosionable):void {explosionable.checkExplosionType(x, y);}
+    explosion(x:number, y:number, explosionable:Explosionable):void {explosionable.checkExplosionType(x, y);} //METODE QUE CRIDARA A LA INTERFICIE DE CADA BULLET PER VEURE QUINA EXPLOSIO TE
+    createPlayer() {var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0); this.game.player = this.add.existing(oriol);}; //METODE PER CREAR JUGADOR
 }
 
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
-// ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- NOT FINISHED
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- FINISHED
 class Bullet extends Phaser.Sprite //AIXO SERIA COM EL GAT, LES BULLETS EXPLOTEN PER TANT IMPLEMENTEN LA INTERFICIE EXPLOSIONABLE PER A QUE POGUEM PASARLI UN TIPUS D'EXPLOSIÓ
 {
     explosionable:Explosionable;
@@ -332,7 +326,7 @@ class SmokeExplosion extends Phaser.Sprite implements Explosionable //EXPLOSIÓ 
         this.anchor.set(0.5, 0.5);
         this.kill();
     }
-    checkExplosionType(x:number, y:number):void
+    checkExplosionType(x:number, y:number):void  //METODE QUE CAMBIARA EL TIPUS D'EXPLOSIÓ DEL GRUP D'EXPLOSIONS DEL GAME
     {
         this.game.explosions.forEach((explosion:Phaser.Sprite) => {explosion.loadTexture(this.game.rnd.pick(['explosion', 'explosion2', 'explosion3']));}, this);
         this.game.explode(x, y);
@@ -348,7 +342,7 @@ class RedExplosion extends Phaser.Sprite implements Explosionable //EXPLOSIÓ VE
         this.anchor.set(0.5, 0.5);
         this.kill();
     }
-    checkExplosionType(x:number, y:number):void
+    checkExplosionType(x:number, y:number):void  //METODE QUE CAMBIARA EL TIPUS D'EXPLOSIÓ DEL GRUP D'EXPLOSIONS DEL GAME
     {
         this.game.explosions.forEach((explosion:Phaser.Sprite) => {explosion.loadTexture('red_explosion');}, this);
         this.game.explode(x, y);
@@ -364,13 +358,13 @@ class NoExplosion extends Phaser.Sprite implements Explosionable //SENSE EXPLOSI
         this.anchor.set(0.5, 0.5);
         this.kill();
     }
-    checkExplosionType(x:number, y:number):void
+    checkExplosionType(x:number, y:number):void  //METODE QUE CAMBIARA EL TIPUS D'EXPLOSIÓ DEL GRUP D'EXPLOSIONS DEL GAME
     {
         this.game.explosions.forEach((explosion:Phaser.Sprite) => {explosion.loadTexture(null);}, this);
         this.game.explode(x, y);
     }
 }
-class YellowExplosion extends Phaser.Sprite implements Explosionable //EXPLOSIÓ VERMELLA
+class YellowExplosion extends Phaser.Sprite implements Explosionable //EXPLOSIÓ GROGA
 {
     game:ShooterGame;
     constructor(game:ShooterGame)
@@ -380,7 +374,7 @@ class YellowExplosion extends Phaser.Sprite implements Explosionable //EXPLOSIÓ
         this.anchor.set(0.5, 0.5);
         this.kill();
     }
-    checkExplosionType(x:number, y:number):void
+    checkExplosionType(x:number, y:number):void //METODE QUE CAMBIARA EL TIPUS D'EXPLOSIÓ DEL GRUP D'EXPLOSIONS DEL GAME
     {
         this.game.explosions.forEach((explosion:Phaser.Sprite) => {explosion.loadTexture('yellow_explosion');}, this);
         this.game.explode(x, y);
@@ -389,19 +383,20 @@ class YellowExplosion extends Phaser.Sprite implements Explosionable //EXPLOSIÓ
 
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- FINISHED
 class Ability //CLASE PRINCIPAL QUE NOMES CONTE LA DESCRIPCIO DE LA HABILITAT
 {
     ABILITY:string = "None";
-    constructor(ability:string)
-    {
-        this.ABILITY = ability;
-    }
+    constructor(ability:string) {this.ABILITY = ability;}
 }
 class Teleport extends Ability {constructor() {super("Teleport")}} //CADASCUNA DE LES ABILITATS QUE LI PODREM AFEGIR A CADA MONSTER
 class Fly extends Ability {constructor() {super("Fly");}}
 class Run extends Ability {constructor() {super("Run");}}
 
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- FINISHED
@@ -432,9 +427,8 @@ class Monster extends Phaser.Sprite //MONSTER PER DEFECTE TINDRA TOT EL QUE TIND
         for (var x=0; x<this.ABILITIES.length; x++)
         {
             toPrint = toPrint + this.ABILITIES[x].ABILITY;
-            //this.game.scoreText.setText(toPrint);  //Uncomment this to check that it works.
+            // this.game.scoreText.setText(toPrint);  //Uncomment this to check that it works.
         }
-       
     }
     setAbility(ability:Ability)
     {
@@ -464,9 +458,7 @@ class RobotMonster extends Monster //CADA MONSTER TINDRA NOM VIDA I VELOCITAT DI
         this.NAME = "ROBOT";
         this.SPEED = 200;
     }
-    update():void {
-        super.update();
-    }
+    update():void {super.update();}
 }
 class Zombie1Monster extends Monster //CADA MONSTER TINDRA NOM VIDA I VELOCITAT DIFERENT
 {
@@ -477,10 +469,7 @@ class Zombie1Monster extends Monster //CADA MONSTER TINDRA NOM VIDA I VELOCITAT 
         this.NAME="Zombie 1";
         this.SPEED = 300;
     }
-
-    update():void {
-        super.update();
-    }
+    update():void {super.update();}
 }
 class Zombie2Monster extends Monster //CADA MONSTER TINDRA NOM VIDA I VELOCITAT DIFERENT
 {
@@ -491,11 +480,11 @@ class Zombie2Monster extends Monster //CADA MONSTER TINDRA NOM VIDA I VELOCITAT 
         this.NAME="Zombie 2";
         this.SPEED = 250;
     }
-    update():void {
-        super.update();
-    }
+    update():void {super.update();}
 }
 
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
+// ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- FINISHED
@@ -519,12 +508,10 @@ class Player extends Phaser.Sprite //EL PLAYER PODRA SUBSCRIURES O NO A LA CLASE
         this.body.drag.setTo(this.game.PLAYER_DRAG, this.game.PLAYER_DRAG);
         this.details.subscribe(this);
     }
-
     preUpdate():void {
         super.preUpdate();
         this.details.generateRandomAchievements(); //AIXO NOMES ES PER GENERAR UNS QUANTS ACHIEVEMENTS ABANS DEL UPDATE()
     }
-
     update():void
     {
         super.update();
@@ -533,6 +520,7 @@ class Player extends Phaser.Sprite //EL PLAYER PODRA SUBSCRIURES O NO A LA CLASE
     notify(notification:string):void {this.game.achievementsText.setText(notification);}
     getScore():number{return this.SCORE;}
 }
+
 class Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS FACILMENT, NOMES LI HE FICAT UN MISATGE PER QUAN ES COMPLEIX, I UN NUMERO QUE SERA EL SCORE MINIM PER COMPLIR EL ACHIEVEMENT
 {
     REQUERIMENT:number = 0;
@@ -543,6 +531,7 @@ class Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS
         this.MESSAGE = message;
     };
 }
+
 class Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLERT ACHIEVEMENTS O NO
 {
     PLAYERS:Array<Player> = [];
@@ -570,5 +559,5 @@ class Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMP
             }
         }
     }
-    generateRandomAchievements():boolean {for (var x=0; x<5; x++) {this.ACHIEVEMENTS[x] = new Achievement(x*100, "YOU HAVE REACHED LEVEL "+x+"!");} return true;}
+    generateRandomAchievements():boolean {for (var x=0; x<5; x++) {this.ACHIEVEMENTS[x] = new Achievement(x*100, "YOU HAVE REACHED LEVEL "+x+"!");} return true;} //METODE PER GENERAR ACHIEVEMENTS 
 }
