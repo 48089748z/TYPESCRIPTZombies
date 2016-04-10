@@ -961,7 +961,7 @@ var ShooterGame = (function (_super) {
     function ShooterGame() {
         _super.call(this, 1000, 1000, Phaser.CANVAS, 'gameDiv');
         this.PLAYER_ACCELERATION = 500;
-        this.PLAYER_MAX_SPEED = 300; // pixels/second
+        this.PLAYER_MAX_SPEED = 300;
         this.PLAYER_DRAG = 600;
         this.MONSTER_SPEED = 200;
         this.BULLET_SPEED = 600;
@@ -1011,27 +1011,25 @@ var mainState = (function (_super) {
         }
     };
     mainState.prototype.loadImages = function () {
-        this.load.image('bg', 'assets/bg.png');
+        this.load.tilemap('tilemap', 'assets/tiles.json', null, Phaser.Tilemap.TILED_JSON);
+        this.load.image('tiles', 'assets/tilesheet_complete.png');
         this.load.image('player', 'assets/survivor1_machine.png');
         this.load.image('bullet', 'assets/bulletBeigeSilver_outline.png');
         this.load.image('zombie1', 'assets/zoimbie1_hold.png');
         this.load.image('zombie2', 'assets/zombie2_hold.png');
         this.load.image('robot', 'assets/robot1_hold.png');
-        this.load.image('explosion', 'assets/smokeWhite0.png');
-        this.load.image('explosion2', 'assets/smokeWhite1.png');
-        this.load.image('explosion3', 'assets/smokeWhite2.png');
-        this.load.tilemap('tilemap', 'assets/tiles.json', null, Phaser.Tilemap.TILED_JSON);
-        this.load.image('tiles', 'assets/tilesheet_complete.png');
         this.load.image('joystick_base', 'assets/transparentDark05.png');
         this.load.image('joystick_segment', 'assets/transparentDark09.png');
         this.load.image('joystick_knob', 'assets/transparentDark49.png');
+        this.load.image('explosion', 'assets/smokeWhite0.png');
+        this.load.image('explosion2', 'assets/smokeWhite1.png');
+        this.load.image('explosion3', 'assets/smokeWhite2.png');
         this.load.image('red_explosion', 'assets/red_explosion.gif');
         this.load.image('yellow_explosion', 'assets/yellow_explosion.gif');
     };
     mainState.prototype.create = function () {
         _super.prototype.create.call(this);
-        this.createTilemap();
-        this.createBackground();
+        this.createMap();
         this.createWalls();
         this.createExplosions();
         this.createBullets();
@@ -1072,15 +1070,12 @@ var mainState = (function (_super) {
         this.game.tilemap.setCollisionBetween(1, 195, true, 'walls');
     };
     ;
-    mainState.prototype.createBackground = function () {
+    mainState.prototype.createMap = function () {
+        this.game.tilemap = this.game.add.tilemap('tilemap');
+        this.game.tilemap.addTilesetImage('tilesheet_complete', 'tiles');
         this.game.background = this.game.tilemap.createLayer('background');
         this.game.background.x = this.world.centerX;
         this.game.background.y = this.world.centerY;
-    };
-    ;
-    mainState.prototype.createTilemap = function () {
-        this.game.tilemap = this.game.add.tilemap('tilemap');
-        this.game.tilemap.addTilesetImage('tilesheet_complete', 'tiles');
     };
     ;
     mainState.prototype.update = function () {
@@ -1209,16 +1204,16 @@ var mainState = (function (_super) {
         this.game.bullets.physicsBodyType = Phaser.Physics.ARCADE;
         for (var x = 0; x < 20; x++) {
             var bullet = new Bullet(this.game, 'bullet');
-            bullet.setExplosionable(new RedExplosion(this.game)); //5 BALES AMB RED EXPLOSIÓ
+            bullet.setExplosionable(new RedExplosion(this.game)); //5 BALES AMB RED EXPLOSION
             this.game.bullets.add(bullet);
             bullet = new Bullet(this.game, 'bullet');
-            bullet.setExplosionable(new SmokeExplosion(this.game)); //5 BALES AMB SMOKE EXPLOSIÓ
+            bullet.setExplosionable(new SmokeExplosion(this.game)); //5 BALES AMB SMOKE EXPLOSION
             this.game.bullets.add(bullet);
             bullet = new Bullet(this.game, 'bullet');
-            bullet.setExplosionable(new YellowExplosion(this.game)); //5 BALES AMB YELLOW EXPLOSIÓ
+            bullet.setExplosionable(new YellowExplosion(this.game)); //5 BALES AMB YELLOW EXPLOSION
             this.game.bullets.add(bullet);
             bullet = new Bullet(this.game, 'bullet');
-            bullet.setExplosionable(new NoExplosion(this.game)); //5 BALES SENSE EXPLOSIÓ
+            bullet.setExplosionable(new NoExplosion(this.game)); //5 BALES SENSE EXPLOSION
             this.game.bullets.add(bullet);
         }
     };

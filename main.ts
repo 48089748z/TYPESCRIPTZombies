@@ -18,7 +18,7 @@ class ShooterGame extends Phaser.Game
     gamepad:Gamepads.GamePad;
     
     PLAYER_ACCELERATION = 500;
-    PLAYER_MAX_SPEED = 300; // pixels/second
+    PLAYER_MAX_SPEED = 300;
     PLAYER_DRAG = 600;
     MONSTER_SPEED = 200;
     BULLET_SPEED = 600;
@@ -72,28 +72,26 @@ class mainState extends Phaser.State
     }
     loadImages()
     {
-        this.load.image('bg', 'assets/bg.png');
+        this.load.tilemap('tilemap', 'assets/tiles.json', null, Phaser.Tilemap.TILED_JSON);
+        this.load.image('tiles', 'assets/tilesheet_complete.png');
         this.load.image('player', 'assets/survivor1_machine.png');
         this.load.image('bullet', 'assets/bulletBeigeSilver_outline.png');
         this.load.image('zombie1', 'assets/zoimbie1_hold.png');
         this.load.image('zombie2', 'assets/zombie2_hold.png');
         this.load.image('robot', 'assets/robot1_hold.png');
-        this.load.image('explosion', 'assets/smokeWhite0.png');
-        this.load.image('explosion2', 'assets/smokeWhite1.png');
-        this.load.image('explosion3', 'assets/smokeWhite2.png');
-        this.load.tilemap('tilemap', 'assets/tiles.json', null, Phaser.Tilemap.TILED_JSON);
-        this.load.image('tiles', 'assets/tilesheet_complete.png');
         this.load.image('joystick_base', 'assets/transparentDark05.png');
         this.load.image('joystick_segment', 'assets/transparentDark09.png');
         this.load.image('joystick_knob', 'assets/transparentDark49.png');
+        this.load.image('explosion', 'assets/smokeWhite0.png');
+        this.load.image('explosion2', 'assets/smokeWhite1.png');
+        this.load.image('explosion3', 'assets/smokeWhite2.png');
         this.load.image('red_explosion', 'assets/red_explosion.gif');
         this.load.image('yellow_explosion', 'assets/yellow_explosion.gif');
     }
     create():void
     {
         super.create();
-        this.createTilemap();
-        this.createBackground();
+        this.createMap();
         this.createWalls();
         this.createExplosions();
         this.createBullets();
@@ -132,16 +130,13 @@ class mainState extends Phaser.State
         this.game.walls.resizeWorld();
         this.game.tilemap.setCollisionBetween(1, 195, true, 'walls');
     };
-    private createBackground()
-    {
-        this.game.background = this.game.tilemap.createLayer('background');
-        this.game.background.x = this.world.centerX;
-        this.game.background.y = this.world.centerY;
-    };
-    private createTilemap()
+    private createMap()
     {
         this.game.tilemap = this.game.add.tilemap('tilemap');
         this.game.tilemap.addTilesetImage('tilesheet_complete', 'tiles');
+        this.game.background = this.game.tilemap.createLayer('background');
+        this.game.background.x = this.world.centerX;
+        this.game.background.y = this.world.centerY;
     };
     update():void
     {
@@ -261,22 +256,22 @@ class mainState extends Phaser.State
         this.game.bullets = this.add.group();
         this.game.bullets.enableBody = true;
         this.game.bullets.physicsBodyType = Phaser.Physics.ARCADE;
-        for (var x=0; x<20; x++) //CREAREM 5 EXPLOSIONS DE CADA TIPUS PER QUE ES VEGI AL JOC QUE FUNCIONA AL CREAR LES BALES LI PODEM DIR FACILMENT QUIN TIPUS DEXPLOSIO TINDRAN O SI NO VOLEM QUE EN TINGUIN
+        for (var x=0; x<20; x++) //CREAREM 20 BULLETS I 5 EXPLOSIONS DE CADA TIPUS PER QUE ES VEGI AL JOC QUE FUNCIONA AL CREAR LES BALES LI PODEM DIR FACILMENT QUIN TIPUS DEXPLOSIO TINDRAN O SI NO VOLEM QUE EN TINGUIN
         {
             var bullet = new Bullet(this.game, 'bullet');
-            bullet.setExplosionable(new RedExplosion(this.game)); //5 BALES AMB RED EXPLOSIÓ
+            bullet.setExplosionable(new RedExplosion(this.game)); //5 BALES AMB RED EXPLOSION
             this.game.bullets.add(bullet);
 
             bullet = new Bullet(this.game, 'bullet');
-            bullet.setExplosionable(new SmokeExplosion(this.game)); //5 BALES AMB SMOKE EXPLOSIÓ
+            bullet.setExplosionable(new SmokeExplosion(this.game)); //5 BALES AMB SMOKE EXPLOSION
             this.game.bullets.add(bullet);
 
             bullet = new Bullet(this.game, 'bullet');
-            bullet.setExplosionable(new YellowExplosion(this.game)); //5 BALES AMB YELLOW EXPLOSIÓ
+            bullet.setExplosionable(new YellowExplosion(this.game)); //5 BALES AMB YELLOW EXPLOSION
             this.game.bullets.add(bullet);
 
             bullet = new Bullet(this.game, 'bullet');
-            bullet.setExplosionable(new NoExplosion(this.game)); //5 BALES SENSE EXPLOSIÓ
+            bullet.setExplosionable(new NoExplosion(this.game)); //5 BALES SENSE EXPLOSION
             this.game.bullets.add(bullet);
         }
     };
