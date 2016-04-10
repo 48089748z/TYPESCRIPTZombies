@@ -995,6 +995,22 @@ var mainState = (function (_super) {
     }
     mainState.prototype.preload = function () {
         _super.prototype.preload.call(this);
+        this.loadImages();
+        this.physics.startSystem(Phaser.Physics.ARCADE);
+        if (this.game.device.desktop) {
+            this.game.cursors = this.input.keyboard.createCursorKeys();
+        }
+        else {
+            this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+            this.scale.pageAlignHorizontally = true;
+            this.scale.pageAlignVertically = true;
+            this.scale.pageAlignHorizontally = true;
+            this.scale.pageAlignVertically = true;
+            this.scale.forceOrientation(true);
+            this.scale.startFullScreen(false);
+        }
+    };
+    mainState.prototype.loadImages = function () {
         this.load.image('bg', 'assets/bg.png');
         this.load.image('player', 'assets/survivor1_machine.png');
         this.load.image('bullet', 'assets/bulletBeigeSilver_outline.png');
@@ -1011,19 +1027,6 @@ var mainState = (function (_super) {
         this.load.image('joystick_knob', 'assets/transparentDark49.png');
         this.load.image('red_explosion', 'assets/red_explosion.gif');
         this.load.image('yellow_explosion', 'assets/yellow_explosion.gif');
-        this.physics.startSystem(Phaser.Physics.ARCADE);
-        if (this.game.device.desktop) {
-            this.game.cursors = this.input.keyboard.createCursorKeys();
-        }
-        else {
-            this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-            this.scale.pageAlignHorizontally = true;
-            this.scale.pageAlignVertically = true;
-            this.scale.pageAlignHorizontally = true;
-            this.scale.pageAlignVertically = true;
-            this.scale.forceOrientation(true);
-            this.scale.startFullScreen(false);
-        }
     };
     mainState.prototype.create = function () {
         _super.prototype.create.call(this);
@@ -1083,7 +1086,6 @@ var mainState = (function (_super) {
     mainState.prototype.update = function () {
         _super.prototype.update.call(this);
         this.movePlayer();
-        this.moveMonsters();
         if (this.game.device.desktop) {
             this.rotatePlayerToPointer();
             this.fireWhenButtonClicked();
@@ -1095,42 +1097,6 @@ var mainState = (function (_super) {
         this.physics.arcade.collide(this.game.walls, this.game.monsters, this.resetMonster, null, this);
         this.physics.arcade.collide(this.game.monsters, this.game.monsters, this.resetMonster, null, this);
     };
-    mainState.prototype.monsterTouchesPlayer = function (player, monster) {
-        monster.kill();
-        player.damage(1);
-        this.game.livesText.setText("Lives: " + this.game.player.health);
-        this.blink(player);
-        if (player.health == 0) {
-            this.game.stateText.text = " GAME OVER \n Click to restart";
-            this.input.onTap.addOnce(this.restart, this);
-        }
-    };
-    mainState.prototype.bulletHitMonster = function (bullet, monster) {
-        bullet.kill();
-        monster.damage(1);
-        this.explosion(bullet.x, bullet.y, bullet.explosionable);
-        if (monster.health > 0) {
-            this.blink(monster);
-        }
-        else {
-            this.game.player.SCORE += 10;
-            this.game.scoreText.setText("Score: " + this.game.player.getScore());
-        }
-    };
-    mainState.prototype.blink = function (sprite) {
-        var tween = this.add.tween(sprite).to({ alpha: 0.5 }, 100, Phaser.Easing.Bounce.Out).to({ alpha: 1.0 }, 100, Phaser.Easing.Bounce.Out);
-        tween.repeat(3);
-        tween.start();
-    };
-    mainState.prototype.moveMonsters = function () { this.game.monsters.forEach(this.advanceStraightAhead, this); };
-    ;
-    mainState.prototype.advanceStraightAhead = function (monster) { this.physics.arcade.velocityFromAngle(monster.angle, monster.SPEED, monster.body.velocity); };
-    mainState.prototype.fireWhenButtonClicked = function () { if (this.input.activePointer.isDown) {
-        this.fire();
-    } };
-    ;
-    mainState.prototype.rotatePlayerToPointer = function () { this.game.player.rotation = this.physics.arcade.angleToPointer(this.game.player, this.input.activePointer); };
-    ;
     mainState.prototype.movePlayer = function () {
         var moveWithKeyboard = function () {
             if (this.game.cursors.left.isDown || this.input.keyboard.isDown(Phaser.Keyboard.A)) {
@@ -1175,7 +1141,33 @@ var mainState = (function (_super) {
             moveWithVirtualJoystick.call(this);
         }
     };
-    ;
+    mainState.prototype.monsterTouchesPlayer = function (player, monster) {
+        monster.kill();
+        player.damage(1);
+        this.game.livesText.setText("Lives: " + this.game.player.health);
+        this.blink(player);
+        if (player.health == 0) {
+            this.game.stateText.text = " GAME OVER \n Click to restart";
+            this.input.onTap.addOnce(this.restart, this);
+        }
+    };
+    mainState.prototype.bulletHitMonster = function (bullet, monster) {
+        bullet.kill();
+        monster.damage(1);
+        this.explosion(bullet.x, bullet.y, bullet.explosionable);
+        if (monster.health > 0) {
+            this.blink(monster);
+        }
+        else {
+            this.game.player.SCORE += 10;
+            this.game.scoreText.setText("Score: " + this.game.player.getScore());
+        }
+    };
+    mainState.prototype.blink = function (sprite) {
+        var tween = this.add.tween(sprite).to({ alpha: 0.5 }, 100, Phaser.Easing.Bounce.Out).to({ alpha: 1.0 }, 100, Phaser.Easing.Bounce.Out);
+        tween.repeat(3);
+        tween.start();
+    };
     mainState.prototype.fire = function () {
         if (this.time.now > this.game.NEXT_FIRE) {
             var bullet = this.game.bullets.getFirstDead();
@@ -1192,16 +1184,6 @@ var mainState = (function (_super) {
             }
         }
     };
-    mainState.prototype.addMonster = function (monster) { this.game.add.existing(monster); this.game.monsters.add(monster); };
-    mainState.prototype.createPlayer = function () { var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0); this.game.player = this.add.existing(oriol); };
-    ;
-    mainState.prototype.restart = function () { this.game.state.restart(); };
-    mainState.prototype.resetMonster = function (monster) { monster.rotation = this.physics.arcade.angleBetween(monster, this.game.player); };
-    mainState.prototype.bulletHitWall = function (bullet) { this.explosion(bullet.x, bullet.y, bullet.explosionable); bullet.kill(); };
-    mainState.prototype.createVirtualJoystick = function () { this.game.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK); };
-    ;
-    mainState.prototype.setupCamera = function () { this.camera.follow(this.game.player); };
-    ;
     mainState.prototype.createMonsters = function () {
         this.game.monsters = this.add.group();
         var factory = new MonsterFactory(this.game);
@@ -1245,6 +1227,22 @@ var mainState = (function (_super) {
         }
     };
     ;
+    mainState.prototype.fireWhenButtonClicked = function () { if (this.input.activePointer.isDown) {
+        this.fire();
+    } };
+    ;
+    mainState.prototype.rotatePlayerToPointer = function () { this.game.player.rotation = this.physics.arcade.angleToPointer(this.game.player, this.input.activePointer); };
+    ;
+    mainState.prototype.addMonster = function (monster) { this.game.add.existing(monster); this.game.monsters.add(monster); };
+    mainState.prototype.createPlayer = function () { var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0); this.game.player = this.add.existing(oriol); };
+    ;
+    mainState.prototype.restart = function () { this.game.state.restart(); };
+    mainState.prototype.resetMonster = function (monster) { monster.rotation = this.physics.arcade.angleBetween(monster, this.game.player); };
+    mainState.prototype.createVirtualJoystick = function () { this.game.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK); };
+    ;
+    mainState.prototype.setupCamera = function () { this.camera.follow(this.game.player); };
+    ;
+    mainState.prototype.bulletHitWall = function (bullet) { this.explosion(bullet.x, bullet.y, bullet.explosionable); bullet.kill(); };
     mainState.prototype.explosion = function (x, y, explosionable) { explosionable.checkExplosionType(x, y); };
     return mainState;
 }(Phaser.State));
@@ -1364,7 +1362,7 @@ var Monster = (function (_super) {
     function Monster(game, x, y, key, frame) {
         _super.call(this, game, x, y, key, frame);
         this.index = 0;
-        this.ABILITIES = new Array(); //AQUEST ARRAY ES PER EL DECORATOR
+        this.ABILITIES = []; //AQUEST ARRAY ES PER EL DECORATOR
         this.MONSTER_HEALTH = 0; //AQUESTES DUES VARIABLES LES TENEN TOTS ELS MONSTRES PERO VARIARAN SEGONS QUIN MONSTRE CREEM, IGUAL QUE AMB LES MONES DE CIUTAT O POBLE, AMB DIFERENTS INGREDIENTS
         this.game = game;
         this.game.physics.enable(this, Phaser.Physics.ARCADE);
@@ -1376,6 +1374,7 @@ var Monster = (function (_super) {
     Monster.prototype.update = function () {
         _super.prototype.update.call(this);
         this.events.onOutOfBounds.add(this.resetMonster, this);
+        this.game.physics.arcade.velocityFromAngle(this.angle, this.SPEED, this.body.velocity);
         var toPrint = this.NAME + " ABILITIES:  ";
         for (var x = 0; x < this.ABILITIES.length; x++) {
             toPrint = toPrint + this.ABILITIES[x].ABILITY;
@@ -1499,8 +1498,8 @@ var Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLE
  = (function () {
     function Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLERT ACHIEVEMENTS O NO
         () {
-        this.PLAYERS = new Array();
-        this.ACHIEVEMENTS = new Array();
+        this.PLAYERS = [];
+        this.ACHIEVEMENTS = [];
         this.index = 0;
     }
     Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLERT ACHIEVEMENTS O NO

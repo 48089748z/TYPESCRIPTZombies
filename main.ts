@@ -25,7 +25,6 @@ class ShooterGame extends Phaser.Game
     FIRE_RATE = 200;
     TEXT_MARGIN = 50;
     NEXT_FIRE = 0;
-
     constructor() 
     {
         super(1000, 1000, Phaser.CANVAS, 'gameDiv');
@@ -52,35 +51,12 @@ class ShooterGame extends Phaser.Game
 }
 class mainState extends Phaser.State
 {
-    //OBSERVER PER SCORE PLAYER I ACHIEVEMENTS ?
-    //FACTORY O DECORATOR PER MONSTERS ?
-    //UN ALTRE PER BULLETS ?
-    //I SUPOSO QUE UN ALTRE PER LES EXPLOSIONS
-
     game:ShooterGame;
     preload():void
     {
         super.preload();
 
-        this.load.image('bg', 'assets/bg.png');
-        this.load.image('player', 'assets/survivor1_machine.png');
-        this.load.image('bullet', 'assets/bulletBeigeSilver_outline.png');
-        this.load.image('zombie1', 'assets/zoimbie1_hold.png');
-        this.load.image('zombie2', 'assets/zombie2_hold.png');
-        this.load.image('robot', 'assets/robot1_hold.png');
-        this.load.image('explosion', 'assets/smokeWhite0.png');
-        this.load.image('explosion2', 'assets/smokeWhite1.png');
-        this.load.image('explosion3', 'assets/smokeWhite2.png');
-        this.load.tilemap('tilemap', 'assets/tiles.json', null, Phaser.Tilemap.TILED_JSON);
-        this.load.image('tiles', 'assets/tilesheet_complete.png');
-
-        this.load.image('joystick_base', 'assets/transparentDark05.png');
-        this.load.image('joystick_segment', 'assets/transparentDark09.png');
-        this.load.image('joystick_knob', 'assets/transparentDark49.png');
-        
-        this.load.image('red_explosion', 'assets/red_explosion.gif');
-        this.load.image('yellow_explosion', 'assets/yellow_explosion.gif');
-        
+        this.loadImages();
         this.physics.startSystem(Phaser.Physics.ARCADE);
         if (this.game.device.desktop) {this.game.cursors = this.input.keyboard.createCursorKeys();} 
         else 
@@ -94,8 +70,27 @@ class mainState extends Phaser.State
             this.scale.startFullScreen(false);
         }
     }
-
-    create():void {
+    loadImages()
+    {
+        this.load.image('bg', 'assets/bg.png');
+        this.load.image('player', 'assets/survivor1_machine.png');
+        this.load.image('bullet', 'assets/bulletBeigeSilver_outline.png');
+        this.load.image('zombie1', 'assets/zoimbie1_hold.png');
+        this.load.image('zombie2', 'assets/zombie2_hold.png');
+        this.load.image('robot', 'assets/robot1_hold.png');
+        this.load.image('explosion', 'assets/smokeWhite0.png');
+        this.load.image('explosion2', 'assets/smokeWhite1.png');
+        this.load.image('explosion3', 'assets/smokeWhite2.png');
+        this.load.tilemap('tilemap', 'assets/tiles.json', null, Phaser.Tilemap.TILED_JSON);
+        this.load.image('tiles', 'assets/tilesheet_complete.png');
+        this.load.image('joystick_base', 'assets/transparentDark05.png');
+        this.load.image('joystick_segment', 'assets/transparentDark09.png');
+        this.load.image('joystick_knob', 'assets/transparentDark49.png');
+        this.load.image('red_explosion', 'assets/red_explosion.gif');
+        this.load.image('yellow_explosion', 'assets/yellow_explosion.gif');
+    }
+    create():void
+    {
         super.create();
         this.createTilemap();
         this.createBackground();
@@ -106,39 +101,29 @@ class mainState extends Phaser.State
         this.setupCamera();
         this.createMonsters();
         this.createTexts();
-
-        if (!this.game.device.desktop) {
-            this.createVirtualJoystick();
-        }
+        if (!this.game.device.desktop) {this.createVirtualJoystick();}
     }
-
     private createTexts() 
     {
         var width = this.scale.bounds.width;
         var height = this.scale.bounds.height;
-
         this.game.scoreText = this.add.text(this.game.TEXT_MARGIN, this.game.TEXT_MARGIN, 'Score: ' + this.game.player.getScore(), {font: "30px Arial", fill: "#ffffff"});
         this.game.scoreText.fixedToCamera = true;
-        
         this.game.livesText = this.add.text(width - this.game.TEXT_MARGIN, this.game.TEXT_MARGIN, 'Lives: ' + this.game.player.health, {font: "30px Arial", fill: "#ffffff"});
         this.game.livesText.anchor.setTo(1, 0);
         this.game.livesText.fixedToCamera = true;
-
         this.game.stateText = this.add.text(width / 2, height / 2, '', {font: '84px Arial', fill: '#fff'});
         this.game.stateText.anchor.setTo(0.5, 0.5);
         this.game.stateText.fixedToCamera = true;
-        
         this.game.achievementsText = this.add.text(this.world.centerX, 30, "THIS IS THE OBSERVER PATTERN", {font: "30px Arial", fill: "#ffffff"});
-        this.game.achievementsText.anchor.setTo(0.5, 0.5)
+        this.game.achievementsText.anchor.setTo(0.5, 0.5);
         this.game.achievementsText.fixedToCamera = true;
     };
-
     private createExplosions()
     {
         this.game.explosions = this.add.group();
         this.game.explosions.createMultiple(20, null);
     };
-
     private createWalls()
     {
         this.game.walls = this.game.tilemap.createLayer('walls');
@@ -162,7 +147,6 @@ class mainState extends Phaser.State
     {
         super.update();
         this.movePlayer();
-        this.moveMonsters();
         if (this.game.device.desktop)
         {
             this.rotatePlayerToPointer();
@@ -175,30 +159,55 @@ class mainState extends Phaser.State
         this.physics.arcade.collide(this.game.walls, this.game.monsters, this.resetMonster, null, this);
         this.physics.arcade.collide(this.game.monsters, this.game.monsters, this.resetMonster, null, this);
     }
-
-    
-    private monsterTouchesPlayer(player:Player, monster:Monster) {
+    movePlayer()
+    {
+        var moveWithKeyboard = function ()
+        {
+            if (this.game.cursors.left.isDown || this.input.keyboard.isDown(Phaser.Keyboard.A)) {this.game.player.body.acceleration.x = -this.game.PLAYER_ACCELERATION;}
+            else if (this.game.cursors.right.isDown || this.input.keyboard.isDown(Phaser.Keyboard.D)) {this.game.player.body.acceleration.x = this.game.PLAYER_ACCELERATION;}
+            else if (this.game.cursors.up.isDown || this.input.keyboard.isDown(Phaser.Keyboard.W)) {this.game.player.body.acceleration.y = -this.game.PLAYER_ACCELERATION;}
+            else if (this.game.cursors.down.isDown || this.input.keyboard.isDown(Phaser.Keyboard.S)) {this.game.player.body.acceleration.y = this.game.PLAYER_ACCELERATION;}
+            else
+            {
+                this.game.player.body.acceleration.x = 0;
+                this.game.player.body.acceleration.y = 0;
+            }
+        };
+        var moveWithVirtualJoystick = function ()
+        {
+            if (this.game.gamepad.stick1.cursors.left) {this.game.player.body.acceleration.x = -this.game.PLAYER_ACCELERATION;}
+            else if (this.game.gamepad.stick1.cursors.right) {this.game.player.body.acceleration.x = this.game.PLAYER_ACCELERATION;}
+            else if (this.game.gamepad.stick1.cursors.up) {this.game.player.body.acceleration.y = -this.game.PLAYER_ACCELERATION;}
+            else if (this.game.gamepad.stick1.cursors.down) {this.game.player.body.acceleration.y = this.game.PLAYER_ACCELERATION;}
+            else
+            {
+                this.game.player.body.acceleration.x = 0;
+                this.game.player.body.acceleration.y = 0;
+            }
+        };
+        if (this.game.device.desktop) {moveWithKeyboard.call(this);}
+        else {moveWithVirtualJoystick.call(this);}
+    }
+    private monsterTouchesPlayer(player:Player, monster:Monster)
+    {
         monster.kill();
         player.damage(1);
         this.game.livesText.setText("Lives: " + this.game.player.health);
         this.blink(player);
         if (player.health == 0)
         {
-            this.game.stateText.text = " GAME OVER \n Click to restart"
+            this.game.stateText.text = " GAME OVER \n Click to restart";
             this.input.onTap.addOnce(this.restart, this);
         }
     }
-
-
-
+    
     private bulletHitMonster(bullet:Bullet, monster:Monster) 
     {
         bullet.kill();
         monster.damage(1);
         this.explosion(bullet.x, bullet.y, bullet.explosionable);
-        if (monster.health > 0) {
-            this.blink(monster)
-        } else
+        if (monster.health > 0) {this.blink(monster)}
+        else
         {
             this.game.player.SCORE += 10;
             this.game.scoreText.setText("Score: " + this.game.player.getScore());
@@ -210,39 +219,6 @@ class mainState extends Phaser.State
         tween.repeat(3);
         tween.start();
     }
-    private moveMonsters() {this.game.monsters.forEach(this.advanceStraightAhead, this)};
-    private advanceStraightAhead(monster:Monster) {this.physics.arcade.velocityFromAngle(monster.angle, monster.SPEED, monster.body.velocity);}
-    private fireWhenButtonClicked() {if (this.input.activePointer.isDown) {this.fire();}};
-    private rotatePlayerToPointer() {this.game.player.rotation = this.physics.arcade.angleToPointer(this.game.player, this.input.activePointer);};
-    private movePlayer() 
-    {
-        var moveWithKeyboard = function () 
-        {
-            if (this.game.cursors.left.isDown || this.input.keyboard.isDown(Phaser.Keyboard.A)) {this.game.player.body.acceleration.x = -this.game.PLAYER_ACCELERATION;}
-            else if (this.game.cursors.right.isDown || this.input.keyboard.isDown(Phaser.Keyboard.D)) {this.game.player.body.acceleration.x = this.game.PLAYER_ACCELERATION;}
-            else if (this.game.cursors.up.isDown || this.input.keyboard.isDown(Phaser.Keyboard.W)) {this.game.player.body.acceleration.y = -this.game.PLAYER_ACCELERATION;}
-            else if (this.game.cursors.down.isDown || this.input.keyboard.isDown(Phaser.Keyboard.S)) {this.game.player.body.acceleration.y = this.game.PLAYER_ACCELERATION;}
-            else 
-            {
-                this.game.player.body.acceleration.x = 0;
-                this.game.player.body.acceleration.y = 0;
-            }
-        };
-        var moveWithVirtualJoystick = function () 
-        {
-            if (this.game.gamepad.stick1.cursors.left) {this.game.player.body.acceleration.x = -this.game.PLAYER_ACCELERATION;}
-            else if (this.game.gamepad.stick1.cursors.right) {this.game.player.body.acceleration.x = this.game.PLAYER_ACCELERATION;}
-            else if (this.game.gamepad.stick1.cursors.up) {this.game.player.body.acceleration.y = -this.game.PLAYER_ACCELERATION;}
-            else if (this.game.gamepad.stick1.cursors.down) {this.game.player.body.acceleration.y = this.game.PLAYER_ACCELERATION;}
-            else 
-            {
-                this.game.player.body.acceleration.x = 0;
-                this.game.player.body.acceleration.y = 0;
-            }
-        };
-        if (this.game.device.desktop) {moveWithKeyboard.call(this);}
-        else {moveWithVirtualJoystick.call(this);}
-    };
     fire():void 
     {
         if (this.time.now > this.game.NEXT_FIRE) 
@@ -267,13 +243,6 @@ class mainState extends Phaser.State
             }
         }
     }
-    addMonster(monster:Monster) {this.game.add.existing(monster); this.game.monsters.add(monster);}
-    createPlayer() {var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0); this.game.player = this.add.existing(oriol);};
-    restart() {this.game.state.restart();}
-    resetMonster(monster:Monster) {monster.rotation = this.physics.arcade.angleBetween(monster, this.game.player);}
-    bulletHitWall(bullet:Bullet) {this.explosion(bullet.x, bullet.y, bullet.explosionable); bullet.kill();}
-    createVirtualJoystick() {this.game.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK);};
-    setupCamera() {this.camera.follow(this.game.player);};
     private createMonsters()
     {
         this.game.monsters = this.add.group();
@@ -319,6 +288,15 @@ class mainState extends Phaser.State
             this.game.bullets.add(bullet);
         }
     };
+    fireWhenButtonClicked() {if (this.input.activePointer.isDown) {this.fire();}};
+    rotatePlayerToPointer() {this.game.player.rotation = this.physics.arcade.angleToPointer(this.game.player, this.input.activePointer);};
+    addMonster(monster:Monster) {this.game.add.existing(monster); this.game.monsters.add(monster);}
+    createPlayer() {var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0); this.game.player = this.add.existing(oriol);};
+    restart() {this.game.state.restart();}
+    resetMonster(monster:Monster) {monster.rotation = this.physics.arcade.angleBetween(monster, this.game.player);}
+    createVirtualJoystick() {this.game.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK);};
+    setupCamera() {this.camera.follow(this.game.player);};
+    bulletHitWall(bullet:Bullet) {this.explosion(bullet.x, bullet.y, bullet.explosionable); bullet.kill();}
     explosion(x:number, y:number, explosionable:Explosionable):void {explosionable.checkExplosionType(x, y);}
 }
 
@@ -430,7 +408,7 @@ class Run extends Ability {constructor() {super("Run");}}
 class Monster extends Phaser.Sprite //MONSTER PER DEFECTE TINDRA TOT EL QUE TINDRIA CUALSEVOL MONSTER, DE CUALSEVOL TIPUS
 {
     index:number = 0 ;
-    ABILITIES:Array<Ability> = new Array<Ability>(); //AQUEST ARRAY ES PER EL DECORATOR
+    ABILITIES:Array<Ability> = []; //AQUEST ARRAY ES PER EL DECORATOR
     game:ShooterGame;
     MONSTER_HEALTH = 0; //AQUESTES DUES VARIABLES LES TENEN TOTS ELS MONSTRES PERO VARIARAN SEGONS QUIN MONSTRE CREEM, IGUAL QUE AMB LES MONES DE CIUTAT O POBLE, AMB DIFERENTS INGREDIENTS
     NAME:string;
@@ -449,6 +427,7 @@ class Monster extends Phaser.Sprite //MONSTER PER DEFECTE TINDRA TOT EL QUE TIND
     {
         super.update();
         this.events.onOutOfBounds.add(this.resetMonster, this);
+        this.game.physics.arcade.velocityFromAngle(this.angle, this.SPEED, this.body.velocity);
         var toPrint = this.NAME+" ABILITIES:  ";
         for (var x=0; x<this.ABILITIES.length; x++)
         {
@@ -566,8 +545,8 @@ class Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS
 }
 class Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLERT ACHIEVEMENTS O NO
 {
-    PLAYERS:Array<Player> = new Array<Player>();
-    ACHIEVEMENTS:Array<Achievement> = new Array<Achievement>();
+    PLAYERS:Array<Player> = [];
+    ACHIEVEMENTS:Array<Achievement> = [];
     index:number = 0;
     constructor(){}
     subscribe(player:Player) //FUNCIO PER SUBSCRIURE UN PLAYER ALS ACHIEVEMENTS
