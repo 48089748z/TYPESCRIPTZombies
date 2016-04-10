@@ -1360,7 +1360,7 @@ var Monster = (function (_super) {
         _super.call(this, game, x, y, key, frame);
         this.index = 0;
         this.ABILITIES = []; //AQUEST ARRAY ES PER EL DECORATOR
-        this.MONSTER_HEALTH = 0; //AQUESTES DUES VARIABLES LES TENEN TOTS ELS MONSTRES PERO VARIARAN SEGONS QUIN MONSTRE CREEM, IGUAL QUE AMB LES MONES DE CIUTAT O POBLE, AMB DIFERENTS INGREDIENTS
+        this.MONSTER_HEALTH = 0; //AQUESTES DUES VARIABLES LES TENEN TOTS ELS MONSTRES PERO VARIARAN SEGONS QUIN MONSTRE CREEM
         this.game = game;
         this.game.physics.enable(this, Phaser.Physics.ARCADE);
         this.body.enableBody = true;

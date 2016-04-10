@@ -400,7 +400,7 @@ class Monster extends Phaser.Sprite //MONSTER PER DEFECTE TINDRA TOT EL QUE TIND
     index:number = 0 ;
     ABILITIES:Array<Ability> = []; //AQUEST ARRAY ES PER EL DECORATOR
     game:ShooterGame;
-    MONSTER_HEALTH = 0; //AQUESTES DUES VARIABLES LES TENEN TOTS ELS MONSTRES PERO VARIARAN SEGONS QUIN MONSTRE CREEM, IGUAL QUE AMB LES MONES DE CIUTAT O POBLE, AMB DIFERENTS INGREDIENTS
+    MONSTER_HEALTH = 0; //AQUESTES DUES VARIABLES LES TENEN TOTS ELS MONSTRES PERO VARIARAN SEGONS QUIN MONSTRE CREEM
     NAME:string;
     SPEED:number;
     constructor(game:ShooterGame, x:number, y:number, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture, frame:string|number)
@@ -540,9 +540,9 @@ class Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMP
     }
     update(player:Player):void
     {
-        for (var x=0; x<this.PLAYERS.length; x++) //PER CADASCUN DELS JUGADORS QUE EXISTEIXEN
+        for (var x=0; x<this.PLAYERS.length; x++) //PER CADASCUN DELS JUGADORS QUE SUBSCRITS
         {
-            if (this.PLAYERS[x].NAME == player.NAME) //COMPROVA QUE EL QUE DEMANA LA INFORMACIÓ ESTA SUBSCRIT
+            if (this.PLAYERS[x].NAME == player.NAME) //COMPROVA QUE EL QUE DEMANA LA INFORMACIÓ ESTA SUBSCRIT TMB
             {
                 for (var y=0; y<this.ACHIEVEMENTS.length; y++) //I PER CADASCUN DEL ACHIEVEMENTS QUE EXISTEIXEN
                 {
