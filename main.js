@@ -971,6 +971,21 @@ var ShooterGame = (function (_super) {
         this.state.add('main', mainState);
         this.state.start('main');
     }
+    ShooterGame.prototype.explode = function (x, y) {
+        var explosion = this.explosions.getFirstDead();
+        if (explosion) {
+            explosion.reset(x - this.rnd.integerInRange(0, 5) + this.rnd.integerInRange(0, 5), y - this.rnd.integerInRange(0, 5) + this.rnd.integerInRange(0, 5));
+            explosion.alpha = 0.6;
+            explosion.angle = this.rnd.angle();
+            explosion.scale.setTo(this.rnd.realInRange(0.5, 0.75));
+            this.add.tween(explosion.scale).to({ x: 0, y: 0 }, 500).start();
+            var tween = this.add.tween(explosion).to({ alpha: 0 }, 500);
+            tween.onComplete.add(function () {
+                explosion.kill();
+            });
+            tween.start();
+        }
+    };
     return ShooterGame;
 }(Phaser.Game));
 var mainState = (function (_super) {
@@ -994,6 +1009,8 @@ var mainState = (function (_super) {
         this.load.image('joystick_base', 'assets/transparentDark05.png');
         this.load.image('joystick_segment', 'assets/transparentDark09.png');
         this.load.image('joystick_knob', 'assets/transparentDark49.png');
+        this.load.image('red_explosion', 'assets/red_explosion.gif');
+        this.load.image('yellow_explosion', 'assets/yellow_explosion.gif');
         this.physics.startSystem(Phaser.Physics.ARCADE);
         if (this.game.device.desktop) {
             this.game.cursors = this.input.keyboard.createCursorKeys();
@@ -1040,13 +1057,8 @@ var mainState = (function (_super) {
     };
     ;
     mainState.prototype.createExplosions = function () {
-        var _this = this;
         this.game.explosions = this.add.group();
-        for (var x = 0; x < 15; x++) {
-            var explosion = new Explosion(this.game, 'explosion');
-            this.game.explosions.add(explosion);
-        }
-        this.game.explosions.forEach(function (explosion) { explosion.loadTexture(_this.rnd.pick(['explosion', 'explosion2', 'explosion3'])); }, this);
+        this.game.explosions.createMultiple(20, null);
     };
     ;
     mainState.prototype.createWalls = function () {
@@ -1096,7 +1108,7 @@ var mainState = (function (_super) {
     mainState.prototype.bulletHitMonster = function (bullet, monster) {
         bullet.kill();
         monster.damage(1);
-        this.explosion(bullet.x, bullet.y);
+        this.explosion(bullet.x, bullet.y, bullet.explosionable);
         if (monster.health > 0) {
             this.blink(monster);
         }
@@ -1106,9 +1118,7 @@ var mainState = (function (_super) {
         }
     };
     mainState.prototype.blink = function (sprite) {
-        var tween = this.add.tween(sprite)
-            .to({ alpha: 0.5 }, 100, Phaser.Easing.Bounce.Out)
-            .to({ alpha: 1.0 }, 100, Phaser.Easing.Bounce.Out);
+        var tween = this.add.tween(sprite).to({ alpha: 0.5 }, 100, Phaser.Easing.Bounce.Out).to({ alpha: 1.0 }, 100, Phaser.Easing.Bounce.Out);
         tween.repeat(3);
         tween.start();
     };
@@ -1119,9 +1129,7 @@ var mainState = (function (_super) {
         this.fire();
     } };
     ;
-    mainState.prototype.rotatePlayerToPointer = function () {
-        this.game.player.rotation = this.physics.arcade.angleToPointer(this.game.player, this.input.activePointer);
-    };
+    mainState.prototype.rotatePlayerToPointer = function () { this.game.player.rotation = this.physics.arcade.angleToPointer(this.game.player, this.input.activePointer); };
     ;
     mainState.prototype.movePlayer = function () {
         var moveWithKeyboard = function () {
@@ -1175,8 +1183,8 @@ var mainState = (function (_super) {
                 var length = this.game.player.width * 0.5 + 20;
                 var x = this.game.player.x + (Math.cos(this.game.player.rotation) * length);
                 var y = this.game.player.y + (Math.sin(this.game.player.rotation) * length);
+                this.explosion(x, y, bullet.explosionable);
                 bullet.reset(x, y);
-                this.explosion(x, y);
                 bullet.angle = this.game.player.angle;
                 var velocity = this.physics.arcade.velocityFromRotation(bullet.rotation, this.game.BULLET_SPEED);
                 bullet.body.velocity.setTo(velocity.x, velocity.y);
@@ -1184,37 +1192,12 @@ var mainState = (function (_super) {
             }
         }
     };
-    mainState.prototype.explosion = function (x, y) {
-        var explosion = this.game.explosions.getFirstDead();
-        if (explosion) {
-            explosion.reset(x - this.rnd.integerInRange(0, 5) + this.rnd.integerInRange(0, 5), y - this.rnd.integerInRange(0, 5) + this.rnd.integerInRange(0, 5));
-            explosion.alpha = 0.6;
-            explosion.angle = this.rnd.angle();
-            explosion.scale.setTo(this.rnd.realInRange(0.5, 0.75));
-            this.add.tween(explosion.scale).to({ x: 0, y: 0 }, 500).start();
-            var tween = this.add.tween(explosion).to({ alpha: 0 }, 500);
-            tween.onComplete.add(function () {
-                explosion.kill();
-            });
-            tween.start();
-        }
-    };
-    mainState.prototype.createBullets = function () {
-        this.game.bullets = this.add.group();
-        this.game.bullets.enableBody = true;
-        this.game.bullets.physicsBodyType = Phaser.Physics.ARCADE;
-        for (var x = 0; x < 25; x++) {
-            var bullet = new Bullet(this.game, 'bullet');
-            this.game.bullets.add(bullet);
-        }
-    };
-    ;
     mainState.prototype.addMonster = function (monster) { this.game.add.existing(monster); this.game.monsters.add(monster); };
     mainState.prototype.createPlayer = function () { var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0); this.game.player = this.add.existing(oriol); };
     ;
     mainState.prototype.restart = function () { this.game.state.restart(); };
     mainState.prototype.resetMonster = function (monster) { monster.rotation = this.physics.arcade.angleBetween(monster, this.game.player); };
-    mainState.prototype.bulletHitWall = function (bullet) { this.explosion(bullet.x, bullet.y); bullet.kill(); };
+    mainState.prototype.bulletHitWall = function (bullet) { this.explosion(bullet.x, bullet.y, bullet.explosionable); bullet.kill(); };
     mainState.prototype.createVirtualJoystick = function () { this.game.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK); };
     ;
     mainState.prototype.setupCamera = function () { this.camera.follow(this.game.player); };
@@ -1242,6 +1225,27 @@ var mainState = (function (_super) {
         this.addMonster(monsterWithAbility);
     };
     ;
+    mainState.prototype.createBullets = function () {
+        this.game.bullets = this.add.group();
+        this.game.bullets.enableBody = true;
+        this.game.bullets.physicsBodyType = Phaser.Physics.ARCADE;
+        for (var x = 0; x < 15; x++) {
+            var bullet = new Bullet(this.game, 'bullet');
+            bullet.setExplosionable(new RedExplosion(this.game)); //AL CREAR LES BALES LI PODEM DIR FACILMENT QUIN TIPUS DEXPLOSIO TINDRAN O SI NO VOLEM QUE EN TINGUIN
+            this.game.bullets.add(bullet);
+            bullet = new Bullet(this.game, 'bullet');
+            bullet.setExplosionable(new SmokeExplosion(this.game));
+            this.game.bullets.add(bullet);
+            bullet = new Bullet(this.game, 'bullet');
+            bullet.setExplosionable(new YellowExplosion(this.game));
+            this.game.bullets.add(bullet);
+            bullet = new Bullet(this.game, 'bullet');
+            bullet.setExplosionable(new NoExplosion(this.game));
+            this.game.bullets.add(bullet);
+        }
+    };
+    ;
+    mainState.prototype.explosion = function (x, y, explosionable) { explosionable.checkExplosionType(x, y); };
     return mainState;
 }(Phaser.State));
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -1258,16 +1262,65 @@ var Bullet = (function (_super) {
         this.kill();
     }
     Bullet.prototype.killBullet = function (bullet) { bullet.kill(); };
+    Bullet.prototype.setExplosionable = function (explosionable) { this.explosionable = explosionable; };
     return Bullet;
 }(Phaser.Sprite));
-var Explosion = (function (_super) {
-    __extends(Explosion, _super);
-    function Explosion(game, key) {
-        _super.call(this, game, 0, 0, key, 0);
+var SmokeExplosion = (function (_super) {
+    __extends(SmokeExplosion, _super);
+    function SmokeExplosion(game) {
+        _super.call(this, game, 0, 0, null, 0);
+        this.game = game;
         this.anchor.set(0.5, 0.5);
         this.kill();
     }
-    return Explosion;
+    SmokeExplosion.prototype.checkExplosionType = function (x, y) {
+        var _this = this;
+        this.game.explosions.forEach(function (explosion) { explosion.loadTexture(_this.game.rnd.pick(['explosion', 'explosion2', 'explosion3'])); }, this);
+        this.game.explode(x, y);
+    };
+    return SmokeExplosion;
+}(Phaser.Sprite));
+var RedExplosion = (function (_super) {
+    __extends(RedExplosion, _super);
+    function RedExplosion(game) {
+        _super.call(this, game, 0, 0, null, 0);
+        this.game = game;
+        this.anchor.set(0.5, 0.5);
+        this.kill();
+    }
+    RedExplosion.prototype.checkExplosionType = function (x, y) {
+        this.game.explosions.forEach(function (explosion) { explosion.loadTexture('red_explosion'); }, this);
+        this.game.explode(x, y);
+    };
+    return RedExplosion;
+}(Phaser.Sprite));
+var NoExplosion = (function (_super) {
+    __extends(NoExplosion, _super);
+    function NoExplosion(game) {
+        _super.call(this, game, 0, 0, null, 0);
+        this.game = game;
+        this.anchor.set(0.5, 0.5);
+        this.kill();
+    }
+    NoExplosion.prototype.checkExplosionType = function (x, y) {
+        this.game.explosions.forEach(function (explosion) { explosion.loadTexture(null); }, this);
+        this.game.explode(x, y);
+    };
+    return NoExplosion;
+}(Phaser.Sprite));
+var YellowExplosion = (function (_super) {
+    __extends(YellowExplosion, _super);
+    function YellowExplosion(game) {
+        _super.call(this, game, 0, 0, null, 0);
+        this.game = game;
+        this.anchor.set(0.5, 0.5);
+        this.kill();
+    }
+    YellowExplosion.prototype.checkExplosionType = function (x, y) {
+        this.game.explosions.forEach(function (explosion) { explosion.loadTexture('yellow_explosion'); }, this);
+        this.game.explode(x, y);
+    };
+    return YellowExplosion;
 }(Phaser.Sprite));
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -1419,19 +1472,19 @@ var Player = (function (_super) {
     }
     Player.prototype.preUpdate = function () {
         _super.prototype.preUpdate.call(this);
-        this.details.generateRandomAchievements();
+        this.details.generateRandomAchievements(); //AIXO NOMES ES PER GENERAR UNS QUANTS ACHIEVEMENTS ABANS DEL UPDATE()
     };
     Player.prototype.update = function () {
         _super.prototype.update.call(this);
-        this.details.update(this);
+        this.details.update(this); //EL UPDATE DEL PLAYER S'EXECUTA SOL, PERO LA CLASE ACHIEVEMENTS NO ES UN SPRITE I NO S'EXECUTA SOLA, PER TANT AL UPDATE DE PLAYER HAUREM DE FORÇAR A LA DETAILS A FER UPDATE TMB
     };
     Player.prototype.notify = function (notification) { this.game.achievementsText.setText(notification); };
     Player.prototype.getScore = function () { return this.SCORE; };
     return Player;
 }(Phaser.Sprite));
-var Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS FACILMENT
+var Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS FACILMENT, NOMES LI HE FICAT UN MISATGE PER QUAN ES COMPLEIX, I UN NUMERO QUE SERA EL SCORE MINIM PER COMPLIR EL ACHIEVEMENT
  = (function () {
-    function Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS FACILMENT
+    function Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS FACILMENT, NOMES LI HE FICAT UN MISATGE PER QUAN ES COMPLEIX, I UN NUMERO QUE SERA EL SCORE MINIM PER COMPLIR EL ACHIEVEMENT
         (requeriment, message) {
         this.REQUERIMENT = 0;
         this.MESSAGE = "";
@@ -1439,7 +1492,7 @@ var Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS F
         this.MESSAGE = message;
     }
     ;
-    return Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS FACILMENT
+    return Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS FACILMENT, NOMES LI HE FICAT UN MISATGE PER QUAN ES COMPLEIX, I UN NUMERO QUE SERA EL SCORE MINIM PER COMPLIR EL ACHIEVEMENT
     ;
 }());
 var Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLERT ACHIEVEMENTS O NO
@@ -1461,7 +1514,7 @@ var Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLE
             if (this.PLAYERS[x].NAME == player.NAME) {
                 for (var y = 0; y < this.ACHIEVEMENTS.length; y++) {
                     if (player.SCORE == this.ACHIEVEMENTS[y].REQUERIMENT) {
-                        player.notify(this.ACHIEVEMENTS[y].MESSAGE);
+                        player.notify(this.ACHIEVEMENTS[y].MESSAGE); //I SI ES AIXI EL NOTIFICA
                     }
                 }
             }

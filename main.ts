@@ -32,6 +32,23 @@ class ShooterGame extends Phaser.Game
         this.state.add('main', mainState);
         this.state.start('main');
     }
+    explode(x:number, y:number)
+    {
+        var explosion = this.explosions.getFirstDead();
+        if (explosion)
+        {
+            explosion.reset(x - this.rnd.integerInRange(0, 5) + this.rnd.integerInRange(0, 5), y - this.rnd.integerInRange(0, 5) + this.rnd.integerInRange(0, 5));
+            explosion.alpha = 0.6;
+            explosion.angle = this.rnd.angle();
+            explosion.scale.setTo(this.rnd.realInRange(0.5, 0.75));
+            this.add.tween(explosion.scale).to({x: 0, y: 0}, 500).start();
+            var tween = this.add.tween(explosion).to({alpha: 0}, 500);
+            tween.onComplete.add(() => {
+                explosion.kill();
+            });
+            tween.start();
+        }
+    }
 }
 class mainState extends Phaser.State
 {
@@ -60,6 +77,10 @@ class mainState extends Phaser.State
         this.load.image('joystick_base', 'assets/transparentDark05.png');
         this.load.image('joystick_segment', 'assets/transparentDark09.png');
         this.load.image('joystick_knob', 'assets/transparentDark49.png');
+        
+        this.load.image('red_explosion', 'assets/red_explosion.gif');
+        this.load.image('yellow_explosion', 'assets/yellow_explosion.gif');
+        
         this.physics.startSystem(Phaser.Physics.ARCADE);
         if (this.game.device.desktop) {this.game.cursors = this.input.keyboard.createCursorKeys();} 
         else 
@@ -115,12 +136,7 @@ class mainState extends Phaser.State
     private createExplosions()
     {
         this.game.explosions = this.add.group();
-        for (var x=0; x<15; x++) //CREAREM 15 EXPLOSIONS
-        {
-            var explosion = new Explosion(this.game, 'explosion');
-            this.game.explosions.add(explosion);
-        }
-        this.game.explosions.forEach((explosion:Explosion) => {explosion.loadTexture(this.rnd.pick(['explosion', 'explosion2', 'explosion3']));}, this);
+        this.game.explosions.createMultiple(20, null);
     };
 
     private createWalls()
@@ -128,27 +144,20 @@ class mainState extends Phaser.State
         this.game.walls = this.game.tilemap.createLayer('walls');
         this.game.walls.x = this.world.centerX;
         this.game.walls.y = this.world.centerY;
-
         this.game.walls.resizeWorld();
-
         this.game.tilemap.setCollisionBetween(1, 195, true, 'walls');
     };
-
     private createBackground()
     {
         this.game.background = this.game.tilemap.createLayer('background');
         this.game.background.x = this.world.centerX;
         this.game.background.y = this.world.centerY;
     };
-
     private createTilemap()
     {
         this.game.tilemap = this.game.add.tilemap('tilemap');
         this.game.tilemap.addTilesetImage('tilesheet_complete', 'tiles');
     };
-
-
-   
     update():void
     {
         super.update();
@@ -182,11 +191,11 @@ class mainState extends Phaser.State
 
 
 
-    private bulletHitMonster(bullet:Bullet, monster:Monster) {
+    private bulletHitMonster(bullet:Bullet, monster:Monster) 
+    {
         bullet.kill();
         monster.damage(1);
-        this.explosion(bullet.x, bullet.y);
-
+        this.explosion(bullet.x, bullet.y, bullet.explosionable);
         if (monster.health > 0) {
             this.blink(monster)
         } else
@@ -195,25 +204,16 @@ class mainState extends Phaser.State
             this.game.scoreText.setText("Score: " + this.game.player.getScore());
         }
     }
-
-    blink(sprite:Phaser.Sprite) {
-        var tween = this.add.tween(sprite)
-            .to({alpha: 0.5}, 100, Phaser.Easing.Bounce.Out)
-            .to({alpha: 1.0}, 100, Phaser.Easing.Bounce.Out);
-
+    blink(sprite:Phaser.Sprite) 
+    {
+        var tween = this.add.tween(sprite).to({alpha: 0.5}, 100, Phaser.Easing.Bounce.Out).to({alpha: 1.0}, 100, Phaser.Easing.Bounce.Out);
         tween.repeat(3);
         tween.start();
     }
-
     private moveMonsters() {this.game.monsters.forEach(this.advanceStraightAhead, this)};
     private advanceStraightAhead(monster:Monster) {this.physics.arcade.velocityFromAngle(monster.angle, monster.SPEED, monster.body.velocity);}
     private fireWhenButtonClicked() {if (this.input.activePointer.isDown) {this.fire();}};
-
-    private rotatePlayerToPointer()
-    {
-        this.game.player.rotation = this.physics.arcade.angleToPointer(this.game.player, this.input.activePointer);
-    };
-
+    private rotatePlayerToPointer() {this.game.player.rotation = this.physics.arcade.angleToPointer(this.game.player, this.input.activePointer);};
     private movePlayer() 
     {
         var moveWithKeyboard = function () 
@@ -228,7 +228,6 @@ class mainState extends Phaser.State
                 this.game.player.body.acceleration.y = 0;
             }
         };
-
         var moveWithVirtualJoystick = function () 
         {
             if (this.game.gamepad.stick1.cursors.left) {this.game.player.body.acceleration.x = -this.game.PLAYER_ACCELERATION;}
@@ -241,24 +240,22 @@ class mainState extends Phaser.State
                 this.game.player.body.acceleration.y = 0;
             }
         };
-        if (this.game.device.desktop) 
-        {
-            moveWithKeyboard.call(this);
-        }
+        if (this.game.device.desktop) {moveWithKeyboard.call(this);}
         else {moveWithVirtualJoystick.call(this);}
     };
-
-    fire():void {
-        if (this.time.now > this.game.NEXT_FIRE) {
+    fire():void 
+    {
+        if (this.time.now > this.game.NEXT_FIRE) 
+        {
             var bullet = this.game.bullets.getFirstDead();
-            if (bullet) {
+            if (bullet) 
+            {
                 var length = this.game.player.width * 0.5 + 20;
                 var x = this.game.player.x + (Math.cos(this.game.player.rotation) * length);
                 var y = this.game.player.y + (Math.sin(this.game.player.rotation) * length);
-
+                
+                this.explosion(x, y, bullet.explosionable);
                 bullet.reset(x, y);
-
-                this.explosion(x, y);
 
                 bullet.angle = this.game.player.angle;
 
@@ -270,42 +267,11 @@ class mainState extends Phaser.State
             }
         }
     }
-
-    explosion(x:number, y:number):void
-    {
-        var explosion:Explosion = this.game.explosions.getFirstDead();
-        if (explosion)
-        {
-            explosion.reset(x - this.rnd.integerInRange(0, 5) + this.rnd.integerInRange(0, 5), y - this.rnd.integerInRange(0, 5) + this.rnd.integerInRange(0, 5));
-            explosion.alpha = 0.6;
-            explosion.angle = this.rnd.angle();
-            explosion.scale.setTo(this.rnd.realInRange(0.5, 0.75));
-
-            this.add.tween(explosion.scale).to({x: 0, y: 0}, 500).start();
-            var tween = this.add.tween(explosion).to({alpha: 0}, 500);
-            tween.onComplete.add(() => {
-                explosion.kill();
-            });
-            tween.start();
-        }
-
-    }
-    private createBullets()
-    {
-        this.game.bullets = this.add.group();
-        this.game.bullets.enableBody = true;
-        this.game.bullets.physicsBodyType = Phaser.Physics.ARCADE;
-        for (var x=0; x<25; x++) //CREAREM 20 BULLETS
-        {
-            var bullet = new Bullet(this.game, 'bullet');
-            this.game.bullets.add(bullet);
-        }
-    };
     addMonster(monster:Monster) {this.game.add.existing(monster); this.game.monsters.add(monster);}
     createPlayer() {var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0); this.game.player = this.add.existing(oriol);};
     restart() {this.game.state.restart();}
     resetMonster(monster:Monster) {monster.rotation = this.physics.arcade.angleBetween(monster, this.game.player);}
-    bulletHitWall(bullet:Bullet) {this.explosion(bullet.x, bullet.y);bullet.kill();}
+    bulletHitWall(bullet:Bullet) {this.explosion(bullet.x, bullet.y, bullet.explosionable); bullet.kill();}
     createVirtualJoystick() {this.game.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK);};
     setupCamera() {this.camera.follow(this.game.player);};
     private createMonsters()
@@ -329,13 +295,39 @@ class mainState extends Phaser.State
         monsterWithAbility.setAbility(new Run());
         this.addMonster(monsterWithAbility);
     };
+    private createBullets()
+    {
+        this.game.bullets = this.add.group();
+        this.game.bullets.enableBody = true;
+        this.game.bullets.physicsBodyType = Phaser.Physics.ARCADE;
+        for (var x=0; x<15; x++) //CREAREM 5 EXPLOSIONS DE CADA TIPUS PER QUE ES VEGI AL JOC QUE FUNCIONA
+        {
+            var bullet = new Bullet(this.game, 'bullet');
+            bullet.setExplosionable(new RedExplosion(this.game)); //AL CREAR LES BALES LI PODEM DIR FACILMENT QUIN TIPUS DEXPLOSIO TINDRAN O SI NO VOLEM QUE EN TINGUIN
+            this.game.bullets.add(bullet);
+
+            bullet = new Bullet(this.game, 'bullet');
+            bullet.setExplosionable(new SmokeExplosion(this.game));
+            this.game.bullets.add(bullet);
+
+            bullet = new Bullet(this.game, 'bullet');
+            bullet.setExplosionable(new YellowExplosion(this.game));
+            this.game.bullets.add(bullet);
+
+            bullet = new Bullet(this.game, 'bullet');
+            bullet.setExplosionable(new NoExplosion(this.game));
+            this.game.bullets.add(bullet);
+        }
+    };
+    explosion(x:number, y:number, explosionable:Explosionable):void {explosionable.checkExplosionType(x, y);}
 }
+
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- NOT FINISHED
-class Bullet extends Phaser.Sprite 
+class Bullet extends Phaser.Sprite //AIXO SERIA COM EL GAT, LES BULLETS EXPLOTEN PER TANT IMPLEMENTEN LA INTERFICIE EXPLOSIONABLE PER A QUE POGUEM PASARLI UN TIPUS D'EXPLOSIÓ
 {
-
+    explosionable:Explosionable;
     constructor(game:ShooterGame, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
     {
         super(game, 0, 0, key, 0);
@@ -346,16 +338,77 @@ class Bullet extends Phaser.Sprite
         this.kill();
     }
     killBullet(bullet:Bullet) {bullet.kill();}
+    setExplosionable(explosionable:Explosionable):void {this.explosionable = explosionable;}
 }
-class Explosion extends Phaser.Sprite
+interface Explosionable //INTERFICIE EXPLOSIONABLE QUE ENS OBLIGARA A FER EL OVERRIDE DE QUIN TIPUS D'EXPLOSIO ES
 {
-    constructor(game:ShooterGame, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
+    checkExplosionType(x:number, y:number):void
+}
+class SmokeExplosion extends Phaser.Sprite implements Explosionable //EXPLOSIÓ DE FUM
+{
+    game:ShooterGame;
+    constructor(game:ShooterGame)
     {
-        super(game, 0, 0, key, 0);
+        super(game, 0, 0, null, 0);
+        this.game = game;
         this.anchor.set(0.5, 0.5);
         this.kill();
     }
+    checkExplosionType(x:number, y:number):void
+    {
+        this.game.explosions.forEach((explosion:Phaser.Sprite) => {explosion.loadTexture(this.game.rnd.pick(['explosion', 'explosion2', 'explosion3']));}, this);
+        this.game.explode(x, y);
+    }
 }
+class RedExplosion extends Phaser.Sprite implements Explosionable //EXPLOSIÓ VERMELLA
+{
+    game:ShooterGame;
+    constructor(game:ShooterGame)
+    {
+        super(game, 0, 0, null, 0);
+        this.game = game;
+        this.anchor.set(0.5, 0.5);
+        this.kill();
+    }
+    checkExplosionType(x:number, y:number):void
+    {
+        this.game.explosions.forEach((explosion:Phaser.Sprite) => {explosion.loadTexture('red_explosion');}, this);
+        this.game.explode(x, y);
+    }
+}
+class NoExplosion extends Phaser.Sprite implements Explosionable //SENSE EXPLOSIÓ
+{
+    game:ShooterGame;
+    constructor(game:ShooterGame)
+    {
+        super(game, 0, 0, null, 0);
+        this.game = game;
+        this.anchor.set(0.5, 0.5);
+        this.kill();
+    }
+    checkExplosionType(x:number, y:number):void
+    {
+        this.game.explosions.forEach((explosion:Phaser.Sprite) => {explosion.loadTexture(null);}, this);
+        this.game.explode(x, y);
+    }
+}
+class YellowExplosion extends Phaser.Sprite implements Explosionable //EXPLOSIÓ VERMELLA
+{
+    game:ShooterGame;
+    constructor(game:ShooterGame)
+    {
+        super(game, 0, 0, null, 0);
+        this.game = game;
+        this.anchor.set(0.5, 0.5);
+        this.kill();
+    }
+    checkExplosionType(x:number, y:number):void
+    {
+        this.game.explosions.forEach((explosion:Phaser.Sprite) => {explosion.loadTexture('yellow_explosion');}, this);
+        this.game.explode(x, y);
+    }
+}
+
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- FINISHED
@@ -423,7 +476,7 @@ class MonsterFactory //A LA FACTORY DE MONSTRES LI DIREM QUE VOLEM, AIXO SERIA C
         else{return null;}
     }
 }
-class RobotMonster extends Monster //ELS MONSTERS ESPECIFICS TINDRAN DIFERENT NOM I PUNTS DE VIDA
+class RobotMonster extends Monster //CADA MONSTER TINDRA NOM VIDA I VELOCITAT DIFERENT
 {
     constructor(game:ShooterGame, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
     {
@@ -436,7 +489,7 @@ class RobotMonster extends Monster //ELS MONSTERS ESPECIFICS TINDRAN DIFERENT NO
         super.update();
     }
 }
-class Zombie1Monster extends Monster
+class Zombie1Monster extends Monster //CADA MONSTER TINDRA NOM VIDA I VELOCITAT DIFERENT
 {
     constructor(game:ShooterGame, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
     {
@@ -450,7 +503,7 @@ class Zombie1Monster extends Monster
         super.update();
     }
 }
-class Zombie2Monster extends Monster
+class Zombie2Monster extends Monster //CADA MONSTER TINDRA NOM VIDA I VELOCITAT DIFERENT
 {
     constructor(game:ShooterGame, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture)
     {
@@ -467,7 +520,7 @@ class Zombie2Monster extends Monster
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- FINISHED
-class Player extends Phaser.Sprite
+class Player extends Phaser.Sprite //EL PLAYER PODRA SUBSCRIURES O NO A LA CLASE DETAILS
 {
     game:ShooterGame;
     details:Details = new Details();
@@ -490,18 +543,18 @@ class Player extends Phaser.Sprite
 
     preUpdate():void {
         super.preUpdate();
-        this.details.generateRandomAchievements();
+        this.details.generateRandomAchievements(); //AIXO NOMES ES PER GENERAR UNS QUANTS ACHIEVEMENTS ABANS DEL UPDATE()
     }
 
     update():void
     {
         super.update();
-        this.details.update(this);
+        this.details.update(this); //EL UPDATE DEL PLAYER S'EXECUTA SOL, PERO LA CLASE ACHIEVEMENTS NO ES UN SPRITE I NO S'EXECUTA SOLA, PER TANT AL UPDATE DE PLAYER HAUREM DE FORÇAR A LA DETAILS A FER UPDATE TMB
     }
     notify(notification:string):void {this.game.achievementsText.setText(notification);}
     getScore():number{return this.SCORE;}
 }
-class Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS FACILMENT
+class Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS FACILMENT, NOMES LI HE FICAT UN MISATGE PER QUAN ES COMPLEIX, I UN NUMERO QUE SERA EL SCORE MINIM PER COMPLIR EL ACHIEVEMENT
 {
     REQUERIMENT:number = 0;
     MESSAGE:string = "";
@@ -517,22 +570,22 @@ class Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMP
     ACHIEVEMENTS:Array<Achievement> = new Array<Achievement>();
     index:number = 0;
     constructor(){}
-    subscribe(player:Player)
+    subscribe(player:Player) //FUNCIO PER SUBSCRIURE UN PLAYER ALS ACHIEVEMENTS
     {
         this.PLAYERS[this.index] = player;
         this.index++;
     }
     update(player:Player):void
     {
-        for (var x=0; x<this.PLAYERS.length; x++) //PER CADASCUN DELS JUGADORS DEL ARRAYLIST
+        for (var x=0; x<this.PLAYERS.length; x++) //PER CADASCUN DELS JUGADORS QUE EXISTEIXEN
         {
             if (this.PLAYERS[x].NAME == player.NAME) //COMPROVA QUE EL QUE DEMANA LA INFORMACIÓ ESTA SUBSCRIT
             {
-                for (var y=0; y<this.ACHIEVEMENTS.length; y++) //I MIRA SI TE ALGUN ACHIEVEMENT NOU
+                for (var y=0; y<this.ACHIEVEMENTS.length; y++) //I PER CADASCUN DEL ACHIEVEMENTS QUE EXISTEIXEN
                 {
-                    if (player.SCORE == this.ACHIEVEMENTS[y].REQUERIMENT)
+                    if (player.SCORE == this.ACHIEVEMENTS[y].REQUERIMENT) //COMPROVA SI HA COMPLERT ALGUN
                     {
-                        player.notify(this.ACHIEVEMENTS[y].MESSAGE);
+                        player.notify(this.ACHIEVEMENTS[y].MESSAGE); //I SI ES AIXI EL NOTIFICA
                     }
                 }
             }
