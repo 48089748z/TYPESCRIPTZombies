@@ -422,7 +422,7 @@ class Monster extends Phaser.Sprite //MONSTER PER DEFECTE TINDRA TOT EL QUE TIND
         for (var x=0; x<this.ABILITIES.length; x++)
         {
             toPrint = toPrint + this.ABILITIES[x].ABILITY;
-            // this.game.scoreText.setText(toPrint);  //Uncomment this to check that it works.
+            //this.game.scoreText.setText(toPrint);  //Uncomment this to check that it works.
         }
     }
     setAbility(ability:Ability)

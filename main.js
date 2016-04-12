@@ -1,8 +1,3 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
 /**
  * Phaser joystick plugin.
  * Usage: In your preloader function call the static method preloadAssets. It will handle the preload of the necessary
@@ -12,6 +7,11 @@ var __extends = (this && this.__extends) || function (d, b) {
  * Use the speed dictionary to retrieve the input speed (if you are going to use an analog joystick)
  */
 /// <reference path="../phaser/phaser.d.ts"/>
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 var Gamepads;
 (function (Gamepads) {
     (function (Sectors) {
@@ -295,7 +295,7 @@ var Gamepads;
             game.load.image('joystick_knob', assets_path + '/joystick_knob.png');
         };
         return Joystick;
-    }(Phaser.Plugin));
+    })(Phaser.Plugin);
     Gamepads.Joystick = Joystick;
 })(Gamepads || (Gamepads = {}));
 /// <reference path="../phaser/phaser.d.ts"/>
@@ -350,7 +350,7 @@ var Gamepads;
                 this.lineToRadians(pj * (Math.PI * 2) + this.rotation, radius);
         };
         return PieMask;
-    }(Phaser.Graphics));
+    })(Phaser.Graphics);
     Gamepads.PieMask = PieMask;
 })(Gamepads || (Gamepads = {}));
 /// <reference path="../phaser/phaser.d.ts"/>
@@ -472,7 +472,7 @@ var Gamepads;
             }
         };
         return Button;
-    }(Phaser.Plugin));
+    })(Phaser.Plugin);
     Gamepads.Button = Button;
 })(Gamepads || (Gamepads = {}));
 /// <reference path="Button.ts"/>
@@ -719,7 +719,7 @@ var Gamepads;
             game.load.image('button5', assets_path + '/button5.png');
         };
         return ButtonPad;
-    }(Phaser.Plugin));
+    })(Phaser.Plugin);
     Gamepads.ButtonPad = ButtonPad;
 })(Gamepads || (Gamepads = {}));
 /// <reference path="../phaser/phaser.d.ts"/>
@@ -865,7 +865,7 @@ var Gamepads;
             game.load.image('joystick_knob', assets_path + '/joystick_knob.png');
         };
         return TouchInput;
-    }(Phaser.Plugin));
+    })(Phaser.Plugin);
     Gamepads.TouchInput = TouchInput;
 })(Gamepads || (Gamepads = {}));
 /// <reference path="../phaser/phaser.d.ts"/>
@@ -950,7 +950,7 @@ var Gamepads;
             Gamepads.ButtonPad.preloadAssets(game, assets_path);
         };
         return GamePad;
-    }(Phaser.Plugin));
+    })(Phaser.Plugin);
     Gamepads.GamePad = GamePad;
 })(Gamepads || (Gamepads = {}));
 /// <reference path="phaser/phaser.d.ts"/>
@@ -987,7 +987,7 @@ var ShooterGame = (function (_super) {
         }
     };
     return ShooterGame;
-}(Phaser.Game));
+})(Phaser.Game);
 var mainState = (function (_super) {
     __extends(mainState, _super);
     function mainState() {
@@ -1236,7 +1236,7 @@ var mainState = (function (_super) {
     mainState.prototype.createPlayer = function () { var oriol = new Player('ORIOL', 5, this.game, this.world.centerX, this.world.centerY, 'player', 0); this.game.player = this.add.existing(oriol); };
     ;
     return mainState;
-}(Phaser.State));
+})(Phaser.State);
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- STRATEGY PATTERN FOR BULLETS & EXPLOSIONS ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -1255,7 +1255,7 @@ var Bullet = (function (_super) {
     Bullet.prototype.killBullet = function (bullet) { bullet.kill(); };
     Bullet.prototype.setExplosionable = function (explosionable) { this.explosionable = explosionable; };
     return Bullet;
-}(Phaser.Sprite));
+})(Phaser.Sprite);
 var SmokeExplosion = (function (_super) {
     __extends(SmokeExplosion, _super);
     function SmokeExplosion(game) {
@@ -1270,7 +1270,7 @@ var SmokeExplosion = (function (_super) {
         this.game.explode(x, y);
     };
     return SmokeExplosion;
-}(Phaser.Sprite));
+})(Phaser.Sprite);
 var RedExplosion = (function (_super) {
     __extends(RedExplosion, _super);
     function RedExplosion(game) {
@@ -1284,7 +1284,7 @@ var RedExplosion = (function (_super) {
         this.game.explode(x, y);
     };
     return RedExplosion;
-}(Phaser.Sprite));
+})(Phaser.Sprite);
 var NoExplosion = (function (_super) {
     __extends(NoExplosion, _super);
     function NoExplosion(game) {
@@ -1298,7 +1298,7 @@ var NoExplosion = (function (_super) {
         this.game.explode(x, y);
     };
     return NoExplosion;
-}(Phaser.Sprite));
+})(Phaser.Sprite);
 var YellowExplosion = (function (_super) {
     __extends(YellowExplosion, _super);
     function YellowExplosion(game) {
@@ -1312,7 +1312,7 @@ var YellowExplosion = (function (_super) {
         this.game.explode(x, y);
     };
     return YellowExplosion;
-}(Phaser.Sprite));
+})(Phaser.Sprite);
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- DECORATOR PATTERN FOR MONSTERS ABILITIES ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -1327,28 +1327,28 @@ var Ability //CLASE PRINCIPAL QUE NOMES CONTE LA DESCRIPCIO DE LA HABILITAT
     }
     return Ability //CLASE PRINCIPAL QUE NOMES CONTE LA DESCRIPCIO DE LA HABILITAT
     ;
-}());
+})();
 var Teleport = (function (_super) {
     __extends(Teleport, _super);
     function Teleport() {
         _super.call(this, "Teleport");
     }
     return Teleport;
-}(Ability)); //CADASCUNA DE LES ABILITATS QUE LI PODREM AFEGIR A CADA MONSTER
+})(Ability); //CADASCUNA DE LES ABILITATS QUE LI PODREM AFEGIR A CADA MONSTER
 var Fly = (function (_super) {
     __extends(Fly, _super);
     function Fly() {
         _super.call(this, "Fly");
     }
     return Fly;
-}(Ability));
+})(Ability);
 var Run = (function (_super) {
     __extends(Run, _super);
     function Run() {
         _super.call(this, "Run");
     }
     return Run;
-}(Ability));
+})(Ability);
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- FACTORY PATTERN FOR MONSTERS ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -1383,7 +1383,7 @@ var Monster = (function (_super) {
     };
     Monster.prototype.resetMonster = function (monster) { monster.rotation = this.game.physics.arcade.angleBetween(monster, this.game.player); };
     return Monster;
-}(Phaser.Sprite));
+})(Phaser.Sprite);
 var MonsterFactory //A LA FACTORY DE MONSTRES LI DIREM QUE VOLEM, AIXO SERIA COM LA CLASE PASTISSERIA O MONERIA QUE CREA EN AQUEST CAS MONSTRES DEL TIPUS QUE VOLGUEM
  = (function () {
     function MonsterFactory //A LA FACTORY DE MONSTRES LI DIREM QUE VOLEM, AIXO SERIA COM LA CLASE PASTISSERIA O MONERIA QUE CREA EN AQUEST CAS MONSTRES DEL TIPUS QUE VOLGUEM
@@ -1407,7 +1407,7 @@ var MonsterFactory //A LA FACTORY DE MONSTRES LI DIREM QUE VOLEM, AIXO SERIA COM
     };
     return MonsterFactory //A LA FACTORY DE MONSTRES LI DIREM QUE VOLEM, AIXO SERIA COM LA CLASE PASTISSERIA O MONERIA QUE CREA EN AQUEST CAS MONSTRES DEL TIPUS QUE VOLGUEM
     ;
-}());
+})();
 var RobotMonster = (function (_super) {
     __extends(RobotMonster, _super);
     function RobotMonster(game, key) {
@@ -1418,7 +1418,7 @@ var RobotMonster = (function (_super) {
     }
     RobotMonster.prototype.update = function () { _super.prototype.update.call(this); };
     return RobotMonster;
-}(Monster));
+})(Monster);
 var Zombie1Monster = (function (_super) {
     __extends(Zombie1Monster, _super);
     function Zombie1Monster(game, key) {
@@ -1429,7 +1429,7 @@ var Zombie1Monster = (function (_super) {
     }
     Zombie1Monster.prototype.update = function () { _super.prototype.update.call(this); };
     return Zombie1Monster;
-}(Monster));
+})(Monster);
 var Zombie2Monster = (function (_super) {
     __extends(Zombie2Monster, _super);
     function Zombie2Monster(game, key) {
@@ -1440,7 +1440,7 @@ var Zombie2Monster = (function (_super) {
     }
     Zombie2Monster.prototype.update = function () { _super.prototype.update.call(this); };
     return Zombie2Monster;
-}(Monster));
+})(Monster);
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
 // ---------- ---------- ---------- ---------- ---------- ---------- ---------- OBSERVER PATTERN FOR PLAYERS SCORE & ACHIEVEMENTS ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -1473,7 +1473,7 @@ var Player = (function (_super) {
     Player.prototype.notify = function (notification) { this.game.achievementsText.setText(notification); };
     Player.prototype.getScore = function () { return this.SCORE; };
     return Player;
-}(Phaser.Sprite));
+})(Phaser.Sprite);
 var Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS FACILMENT, NOMES LI HE FICAT UN MISATGE PER QUAN ES COMPLEIX, I UN NUMERO QUE SERA EL SCORE MINIM PER COMPLIR EL ACHIEVEMENT
  = (function () {
     function Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS FACILMENT, NOMES LI HE FICAT UN MISATGE PER QUAN ES COMPLEIX, I UN NUMERO QUE SERA EL SCORE MINIM PER COMPLIR EL ACHIEVEMENT
@@ -1486,7 +1486,7 @@ var Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS F
     ;
     return Achievement //POJO SIMPLE DE ACHIEVEMENTS, PER QUE EN POGUEM CREAR DE NOUS FACILMENT, NOMES LI HE FICAT UN MISATGE PER QUAN ES COMPLEIX, I UN NUMERO QUE SERA EL SCORE MINIM PER COMPLIR EL ACHIEVEMENT
     ;
-}());
+})();
 var Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLERT ACHIEVEMENTS O NO
  = (function () {
     function Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLERT ACHIEVEMENTS O NO
@@ -1518,5 +1518,5 @@ var Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLE
     } return true; }; //METODE PER GENERAR ACHIEVEMENTS 
     return Details //EL PLAYER ES SUBSCRIU A LA CLASE DETAILS PER OBSERVAR SI HA COMPLERT ACHIEVEMENTS O NO
     ;
-}());
+})();
 //# sourceMappingURL=main.js.map
